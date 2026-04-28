@@ -25,7 +25,7 @@ import { useJournalStore } from './use-journal-store';
 const MOOD_OPTIONS = ['😀', '🙂', '😐', '😔', '😤', '😍'];
 
 type EntryDraft = {
-  moodEmoji: string;
+  moodEmoji: string | null;
   text: string;
   startValue: string;
   endValue: string;
@@ -40,17 +40,23 @@ function buildInitialDraft(entry: JournalEntry | undefined, entries: JournalEntr
     entry ? { excludeEntryId: entry.id } : undefined,
   );
   return {
-    moodEmoji: entry?.moodEmoji ?? '🙂',
+    moodEmoji: entry?.moodEmoji ?? null,
     text: entry?.text ?? '',
     startValue: formatDateTimeInputValue(startTime),
     endValue: formatDateTimeInputValue(endTime),
   };
 }
 
-function MoodPicker({ selectedMood, onSelect }: { selectedMood: string; onSelect: (mood: string) => void }) {
+function MoodPicker({
+  selectedMood,
+  onSelect,
+}: {
+  selectedMood: string | null;
+  onSelect: (mood: string | null) => void;
+}) {
   return (
     <View className="mt-2 mb-3">
-      <Text className="mb-1 font-semibold">Mood</Text>
+      <Text className="mb-1 font-semibold">Mood (optional)</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View className="flex-row gap-2 pr-2">
           {MOOD_OPTIONS.map(option => (
@@ -60,7 +66,7 @@ function MoodPicker({ selectedMood, onSelect }: { selectedMood: string; onSelect
               size="sm"
               fullWidth={false}
               variant={selectedMood === option ? 'default' : 'outline'}
-              onPress={() => onSelect(option)}
+              onPress={() => onSelect(selectedMood === option ? null : option)}
             />
           ))}
         </View>

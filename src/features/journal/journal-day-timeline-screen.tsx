@@ -47,8 +47,7 @@ export function JournalDayTimelineScreen() {
                   <Link key={block.entryId} href={`/entry/${block.entryId}`} asChild>
                     <Pressable className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
                       <Text className="font-semibold">
-                        {block.moodEmoji}
-                        {' '}
+                        {block.moodEmoji ? `${block.moodEmoji} ` : ''}
                         {formatReadableTime(block.startTime)}
                         {' '}
                         -

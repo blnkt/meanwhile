@@ -4,10 +4,13 @@ import { Button, FocusAwareStatusBar, Pressable, ScrollView, Text, View } from '
 import { formatReadableDate, formatReadableTime, getTodayKey, groupEntriesByDay } from './journal-utils';
 import { useJournalStore } from './use-journal-store';
 
-function buildCollapsedSummary(entries: { moodEmoji: string; startTime: string; endTime: string }[]) {
+function buildCollapsedSummary(entries: { moodEmoji: string | null; startTime: string; endTime: string }[]) {
   const entryCount = entries.length;
   const moodCountMap = new Map<string, number>();
   for (const entry of entries) {
+    if (!entry.moodEmoji) {
+      continue;
+    }
     moodCountMap.set(entry.moodEmoji, (moodCountMap.get(entry.moodEmoji) ?? 0) + 1);
   }
   const topMoods = [...moodCountMap.entries()]
@@ -15,13 +18,14 @@ function buildCollapsedSummary(entries: { moodEmoji: string; startTime: string; 
     .slice(0, 3)
     .map(([mood]) => mood)
     .join('');
+  const moodSummary = topMoods || 'No moods logged';
 
   const startTimes = entries.map(entry => new Date(entry.startTime).getTime());
   const endTimes = entries.map(entry => new Date(entry.endTime).getTime());
   const earliestStart = new Date(Math.min(...startTimes)).toISOString();
   const latestEnd = new Date(Math.max(...endTimes)).toISOString();
 
-  return `${entryCount} entries • ${topMoods} • ${formatReadableTime(earliestStart)} - ${formatReadableTime(latestEnd)}`;
+  return `${entryCount} entries • ${moodSummary} • ${formatReadableTime(earliestStart)} - ${formatReadableTime(latestEnd)}`;
 }
 
 export function JournalTimelineScreen() {
@@ -97,8 +101,7 @@ export function JournalTimelineScreen() {
                             <Link key={entry.id} href={`/entry/${entry.id}`} asChild>
                               <Pressable className="mb-2 rounded-lg bg-neutral-100 p-3 dark:bg-neutral-900">
                                 <Text className="font-medium">
-                                  {entry.moodEmoji}
-                                  {' '}
+                                  {entry.moodEmoji ? `${entry.moodEmoji} ` : ''}
                                   {formatReadableTime(entry.startTime)}
                                 </Text>
                                 <Text numberOfLines={2} className="mt-1 text-neutral-700 dark:text-neutral-300">

@@ -11,7 +11,7 @@ type JournalStoreState = {
   entries: JournalEntry[];
   collapsedDayKeys: string[];
   isHydrated: boolean;
-  createEntry: (input: { moodEmoji: string; text: string; startTime?: string; endTime?: string }) => string;
+  createEntry: (input: { moodEmoji?: string | null; text: string; startTime?: string; endTime?: string }) => string;
   updateEntry: (id: string, input: Partial<Pick<JournalEntry, 'moodEmoji' | 'text' | 'startTime' | 'endTime'>>) => void;
   toggleDayCollapsed: (dayKey: string) => void;
   hydrate: () => void;
@@ -37,7 +37,7 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
       id: makeId(),
       createdAt: now,
       updatedAt: now,
-      moodEmoji: input.moodEmoji,
+      moodEmoji: input.moodEmoji ?? null,
       text: input.text,
       startTime,
       endTime,
