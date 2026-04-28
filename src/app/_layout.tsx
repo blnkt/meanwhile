@@ -34,11 +34,17 @@ SplashScreen.setOptions({
 });
 
 export default function RootLayout() {
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      void SplashScreen.hideAsync();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <Providers>
       <Stack>
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       </Stack>
     </Providers>
   );
