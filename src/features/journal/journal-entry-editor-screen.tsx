@@ -10,6 +10,7 @@ import {
   Input,
   Pressable,
   ScrollView,
+  Switch,
   Text,
   View,
 } from '@/components/ui';
@@ -48,7 +49,7 @@ function buildInitialDraft(entry: JournalEntry | undefined, entries: JournalEntr
 
 function MoodPicker({ selectedMood, onSelect }: { selectedMood: string; onSelect: (mood: string) => void }) {
   return (
-    <View className="mb-3">
+    <View className="mt-2 mb-3">
       <Text className="mb-1 font-semibold">Mood</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View className="flex-row gap-2 pr-2">
@@ -159,54 +160,126 @@ function EndTimeSection({
 }: EndTimeSectionProps) {
   return (
     <View className="mb-2 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
-      <Text className="font-semibold">End Time</Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="font-semibold">Manual End Time</Text>
+        <Switch
+          checked={showCustomEndTime}
+          onChange={setShowCustomEndTime}
+          accessibilityLabel="Toggle manual end time"
+        />
+      </View>
       <Text className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
         {showCustomEndTime
           ? `Custom: ${draft.endValue}`
           : `Auto: ${autoEndValue ?? 'Invalid start time'}`}
       </Text>
-      {!showCustomEndTime
+      {showCustomEndTime
         ? (
-            <Button
-              className="mt-2"
-              label="Set Custom End Time"
-              size="sm"
-              variant="outline"
-              fullWidth={false}
-              onPress={() => setShowCustomEndTime(true)}
+            <DateTimeField
+              label="Custom End Time"
+              value={draft.endValue}
+              onChangeText={endValue =>
+                setDraft(previous => ({
+                  ...previous,
+                  endValue,
+                }))}
+              pickerVisible={activePicker === 'end'}
+              onOpen={() => setActivePicker('end')}
+              onClose={() => setActivePicker(null)}
+              onConfirm={(date) => {
+                const endValue = formatDateTimeInputValue(date.toISOString());
+                setDraft(previous => ({
+                  ...previous,
+                  endValue,
+                }));
+                setActivePicker(null);
+              }}
             />
           )
-        : (
-            <>
+        : null}
+    </View>
+  );
+}
+
+type TimeSectionProps = {
+  draft: EntryDraft;
+  autoEndValue: string | null;
+  showCustomEndTime: boolean;
+  activePicker: 'start' | 'end' | null;
+  isTimeSectionExpanded: boolean;
+  setIsTimeSectionExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  setActivePicker: React.Dispatch<React.SetStateAction<'start' | 'end' | null>>;
+  setShowCustomEndTime: React.Dispatch<React.SetStateAction<boolean>>;
+  setDraft: React.Dispatch<React.SetStateAction<EntryDraft>>;
+};
+
+function TimeSection({
+  draft,
+  autoEndValue,
+  showCustomEndTime,
+  activePicker,
+  isTimeSectionExpanded,
+  setIsTimeSectionExpanded,
+  setActivePicker,
+  setShowCustomEndTime,
+  setDraft,
+}: TimeSectionProps) {
+  return (
+    <View className="mb-2 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
+      <Pressable
+        className="flex-row items-center justify-between"
+        onPress={() => setIsTimeSectionExpanded(previous => !previous)}
+      >
+        <Text className="font-semibold">Time Details</Text>
+        <Text className="font-medium text-primary-600 underline dark:text-primary-300">
+          {isTimeSectionExpanded ? 'Hide details' : 'Show details'}
+        </Text>
+      </Pressable>
+      <Text className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
+        Start:
+        {' '}
+        {draft.startValue}
+        {' '}
+        | End:
+        {' '}
+        {showCustomEndTime ? draft.endValue : (autoEndValue ?? 'Auto')}
+      </Text>
+
+      {isTimeSectionExpanded
+        ? (
+            <View className="mt-2">
               <DateTimeField
-                label="Custom End Time"
-                value={draft.endValue}
-                onChangeText={endValue =>
+                label="Start Time"
+                value={draft.startValue}
+                onChangeText={startValue =>
                   setDraft(previous => ({
                     ...previous,
-                    endValue,
+                    startValue,
                   }))}
-                pickerVisible={activePicker === 'end'}
-                onOpen={() => setActivePicker('end')}
+                pickerVisible={activePicker === 'start'}
+                onOpen={() => setActivePicker('start')}
                 onClose={() => setActivePicker(null)}
                 onConfirm={(date) => {
-                  const endValue = formatDateTimeInputValue(date.toISOString());
+                  const startValue = formatDateTimeInputValue(date.toISOString());
                   setDraft(previous => ({
                     ...previous,
-                    endValue,
+                    startValue,
                   }));
                   setActivePicker(null);
                 }}
               />
-              <Button
-                label="Use Auto End Time"
-                size="sm"
-                variant="outline"
-                fullWidth={false}
-                onPress={() => setShowCustomEndTime(false)}
+              <EndTimeSection
+                draft={draft}
+                autoEndValue={autoEndValue}
+                showCustomEndTime={showCustomEndTime}
+                activePicker={activePicker}
+                setActivePicker={setActivePicker}
+                setShowCustomEndTime={setShowCustomEndTime}
+                setDraft={setDraft}
               />
-            </>
-          )}
+            </View>
+          )
+        : null}
     </View>
   );
 }
@@ -233,6 +306,7 @@ function EntryForm({
   onBack,
 }: EntryFormProps) {
   const [activePicker, setActivePicker] = React.useState<'start' | 'end' | null>(null);
+  const [isTimeSectionExpanded, setIsTimeSectionExpanded] = React.useState(false);
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
@@ -251,45 +325,6 @@ function EntryForm({
           />
         </View>
 
-        <MoodPicker
-          selectedMood={draft.moodEmoji}
-          onSelect={moodEmoji =>
-            setDraft(previous => ({
-              ...previous,
-              moodEmoji,
-            }))}
-        />
-
-        <DateTimeField
-          label="Start Time"
-          value={draft.startValue}
-          onChangeText={startValue =>
-            setDraft(previous => ({
-              ...previous,
-              startValue,
-            }))}
-          pickerVisible={activePicker === 'start'}
-          onOpen={() => setActivePicker('start')}
-          onClose={() => setActivePicker(null)}
-          onConfirm={(date) => {
-            const startValue = formatDateTimeInputValue(date.toISOString());
-            setDraft(previous => ({
-              ...previous,
-              startValue,
-            }));
-            setActivePicker(null);
-          }}
-        />
-        <EndTimeSection
-          draft={draft}
-          autoEndValue={autoEndValue}
-          showCustomEndTime={showCustomEndTime}
-          activePicker={activePicker}
-          setActivePicker={setActivePicker}
-          setShowCustomEndTime={setShowCustomEndTime}
-          setDraft={setDraft}
-        />
-
         <Text className="mt-2 mb-1 font-semibold">Entry Text</Text>
         <TextInput
           className="min-h-36 rounded-xl border border-neutral-300 bg-neutral-100 p-3 text-base text-black dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
@@ -303,6 +338,27 @@ function EntryForm({
             }))}
           placeholder="How are you feeling right now?"
           placeholderTextColor="#9ca3af"
+        />
+
+        <MoodPicker
+          selectedMood={draft.moodEmoji}
+          onSelect={moodEmoji =>
+            setDraft(previous => ({
+              ...previous,
+              moodEmoji,
+            }))}
+        />
+
+        <TimeSection
+          draft={draft}
+          autoEndValue={autoEndValue}
+          showCustomEndTime={showCustomEndTime}
+          activePicker={activePicker}
+          isTimeSectionExpanded={isTimeSectionExpanded}
+          setIsTimeSectionExpanded={setIsTimeSectionExpanded}
+          setActivePicker={setActivePicker}
+          setShowCustomEndTime={setShowCustomEndTime}
+          setDraft={setDraft}
         />
 
         <StartTimePreview startValue={draft.startValue} />
