@@ -17,11 +17,11 @@ export function JournalDayTimelineScreen() {
   return (
     <View className="flex-1 bg-white px-4 pt-14 dark:bg-black">
       <FocusAwareStatusBar />
-      <View className="mb-3 flex-row items-center justify-between">
+      <View className="mb-3 gap-2">
         <Text className="text-xl font-bold">
           {selectedGroup ? formatReadableDate(selectedGroup.dayKey) : 'Day Timeline'}
         </Text>
-        <View className="flex-row gap-2">
+        <View className="flex-row justify-end gap-2">
           <Link href="/entry/new" asChild>
             <Button label="New Entry" size="sm" fullWidth={false} />
           </Link>
