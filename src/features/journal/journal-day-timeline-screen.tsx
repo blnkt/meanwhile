@@ -4,11 +4,16 @@ import { Button, FocusAwareStatusBar, Pressable, ScrollView, Text, View } from '
 import { buildDayTimelineBlocks, formatReadableDate, formatReadableTime, groupEntriesByDay } from './journal-utils';
 import { useJournalStore } from './use-journal-store';
 
-export function JournalDayTimelineScreen() {
+type JournalDayTimelineScreenProps = {
+  dayKeyOverride?: string;
+};
+
+export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineScreenProps = {}) {
   const params = useLocalSearchParams<{ 'day-key': string }>();
+  const dayKey = dayKeyOverride ?? params['day-key'];
   const entries = useJournalStore.use.entries();
   const dayGroups = React.useMemo(() => groupEntriesByDay(entries), [entries]);
-  const selectedGroup = dayGroups.find(group => group.dayKey === params['day-key']);
+  const selectedGroup = dayGroups.find(group => group.dayKey === dayKey);
   const blocks = React.useMemo(
     () => buildDayTimelineBlocks(selectedGroup?.entries ?? []),
     [selectedGroup?.entries],
