@@ -4,7 +4,15 @@ import * as React from 'react';
 import { Platform, TextInput } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
-import { Button, FocusAwareStatusBar, Input, Pressable, ScrollView, Text, View } from '@/components/ui';
+import {
+  Button,
+  FocusAwareStatusBar,
+  Input,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from '@/components/ui';
 import {
   formatDateTimeInputValue,
   formatReadableTime,
@@ -40,21 +48,23 @@ function buildInitialDraft(entry: JournalEntry | undefined, entries: JournalEntr
 
 function MoodPicker({ selectedMood, onSelect }: { selectedMood: string; onSelect: (mood: string) => void }) {
   return (
-    <>
+    <View className="mb-3">
       <Text className="mb-1 font-semibold">Mood</Text>
-      <View className="mb-3 flex-row flex-wrap gap-2">
-        {MOOD_OPTIONS.map(option => (
-          <Button
-            key={option}
-            label={option}
-            size="sm"
-            fullWidth={false}
-            variant={selectedMood === option ? 'default' : 'outline'}
-            onPress={() => onSelect(option)}
-          />
-        ))}
-      </View>
-    </>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View className="flex-row gap-2 pr-2">
+          {MOOD_OPTIONS.map(option => (
+            <Button
+              key={option}
+              label={option}
+              size="sm"
+              fullWidth={false}
+              variant={selectedMood === option ? 'default' : 'outline'}
+              onPress={() => onSelect(option)}
+            />
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
