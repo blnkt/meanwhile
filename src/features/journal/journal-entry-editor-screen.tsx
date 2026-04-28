@@ -11,7 +11,6 @@ import {
   getNextEntryStart,
   parseDateTimeInput,
 } from './journal-utils';
-import { useDictation } from './use-dictation';
 import { useJournalStore } from './use-journal-store';
 
 const MOOD_OPTIONS = ['😀', '🙂', '😐', '😔', '😤', '😍'];
@@ -56,41 +55,6 @@ function MoodPicker({ selectedMood, onSelect }: { selectedMood: string; onSelect
         ))}
       </View>
     </>
-  );
-}
-
-function DictationCard({ status, errorMessage, onStart, onStop }: { status: string; errorMessage: string | null; onStart: () => void; onStop: () => void }) {
-  return (
-    <View className="mt-3 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
-      <Text className="font-semibold">Dictation</Text>
-      <Text className="text-sm text-neutral-600 dark:text-neutral-300">
-        Status:
-        {' '}
-        {status}
-      </Text>
-      {errorMessage
-        ? (
-            <Text className="mt-1 text-sm text-red-500">{errorMessage}</Text>
-          )
-        : null}
-
-      <View className="mt-2 flex-row gap-2">
-        <Button
-          label="Start Dictation"
-          size="sm"
-          fullWidth={false}
-          variant="outline"
-          onPress={onStart}
-        />
-        <Button
-          label="Stop"
-          size="sm"
-          fullWidth={false}
-          variant="outline"
-          onPress={onStop}
-        />
-      </View>
-    </View>
   );
 }
 
@@ -159,7 +123,6 @@ type EntryFormProps = {
   showCustomEndTime: boolean;
   setShowCustomEndTime: React.Dispatch<React.SetStateAction<boolean>>;
   validationMessage: string | null;
-  dictation: ReturnType<typeof useDictation>;
   setDraft: React.Dispatch<React.SetStateAction<EntryDraft>>;
   onSave: () => void;
   onBack: () => void;
@@ -248,24 +211,6 @@ function StartTimePreview({ startValue }: { startValue: string }) {
   );
 }
 
-function DictationSection({
-  dictation,
-}: {
-  dictation: ReturnType<typeof useDictation>;
-}) {
-  if (Platform.OS === 'web') {
-    return null;
-  }
-  return (
-    <DictationCard
-      status={dictation.status}
-      errorMessage={dictation.errorMessage}
-      onStart={dictation.startDictation}
-      onStop={dictation.stopDictation}
-    />
-  );
-}
-
 function EntryForm({
   editingEntry,
   draft,
@@ -273,7 +218,6 @@ function EntryForm({
   showCustomEndTime,
   setShowCustomEndTime,
   validationMessage,
-  dictation,
   setDraft,
   onSave,
   onBack,
@@ -352,7 +296,6 @@ function EntryForm({
         />
 
         <StartTimePreview startValue={draft.startValue} />
-        <DictationSection dictation={dictation} />
 
         {validationMessage
           ? (
@@ -455,14 +398,6 @@ export function JournalEntryEditorScreen() {
       ),
     );
   }, [draft.startValue, editingEntry, entries]);
-  const dictation = useDictation({
-    onTranscript: (transcript) => {
-      setDraft(previous => ({
-        ...previous,
-        text: previous.text.length > 0 ? `${previous.text} ${transcript}` : transcript,
-      }));
-    },
-  });
   const saveEntry = useSaveEntry({
     editingEntry,
     draft,
@@ -482,7 +417,6 @@ export function JournalEntryEditorScreen() {
       draft={draft}
       autoEndValue={autoEndValue}
       validationMessage={validationMessage}
-      dictation={dictation}
       setDraft={setDraft}
       showCustomEndTime={showCustomEndTime}
       setShowCustomEndTime={setShowCustomEndTime}
