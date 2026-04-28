@@ -25,7 +25,7 @@ export function JournalDayTimelineScreen() {
           <Link href="/entry/new" asChild>
             <Button label="New Entry" size="sm" fullWidth={false} />
           </Link>
-          <Link href="/" asChild>
+          <Link href="/all-entries" asChild>
             <Button label="All Entries" size="sm" variant="outline" fullWidth={false} />
           </Link>
         </View>

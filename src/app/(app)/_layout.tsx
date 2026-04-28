@@ -12,7 +12,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Journal',
+          title: 'Today',
           tabBarIcon: ({ color }) => <HomeIcon color={color} />,
           tabBarButtonTestID: 'journal-tab',
         }}
@@ -27,6 +27,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen name="day/[day-key]" options={{ href: null }} />
+      <Tabs.Screen name="all-entries" options={{ href: null }} />
       <Tabs.Screen name="entry/new" options={{ href: null }} />
       <Tabs.Screen name="entry/[entry-id]" options={{ href: null }} />
     </Tabs>
