@@ -18,6 +18,7 @@ function makeEntry(partial: Partial<JournalEntry> & Pick<JournalEntry, 'id' | 's
     updatedAt: partial.updatedAt ?? startTime,
     startTime,
     endTime: partial.endTime ?? endOfDay(startTime),
+    isEndTimeManual: partial.isEndTimeManual ?? false,
     moodEmoji: partial.moodEmoji ?? null,
     text: partial.text ?? '',
   };

@@ -166,6 +166,10 @@ type EntryFormProps = {
   onBack: () => void;
 };
 
+function isEntryManualEnd(entry: JournalEntry | undefined) {
+  return entry?.isEndTimeManual ?? false;
+}
+
 type EndTimeSectionProps = {
   draft: EntryDraft;
   autoEndValue: string | null;
@@ -473,7 +477,8 @@ function useSaveEntry({
         moodEmoji: draft.moodEmoji,
         text: trimmedText,
         startTime: start,
-        endTime: end,
+        endTime: showCustomEndTime ? end : undefined,
+        isEndTimeManual: showCustomEndTime,
       });
     }
     else {
@@ -481,7 +486,8 @@ function useSaveEntry({
         moodEmoji: draft.moodEmoji,
         text: trimmedText,
         startTime: start,
-        endTime: end,
+        endTime: showCustomEndTime ? end : undefined,
+        isEndTimeManual: showCustomEndTime,
       });
     }
     const dayKey = toDayKey(start);
@@ -505,7 +511,7 @@ export function JournalEntryEditorScreen() {
   );
   const [draft, setDraft] = React.useState(() => draftSeed);
   const [validationMessage, setValidationMessage] = React.useState<string | null>(null);
-  const [showCustomEndTime, setShowCustomEndTime] = React.useState(false);
+  const [showCustomEndTime, setShowCustomEndTime] = React.useState(() => isEntryManualEnd(editingEntry));
   const autoEndValue = React.useMemo(() => {
     const start = parseDateTimeInput(draft.startValue);
     if (!start) {
@@ -529,8 +535,8 @@ export function JournalEntryEditorScreen() {
   React.useEffect(() => {
     setDraft(draftSeed);
     setValidationMessage(null);
-    setShowCustomEndTime(false);
-  }, [draftSeed]);
+    setShowCustomEndTime(isEntryManualEnd(editingEntry));
+  }, [draftSeed, editingEntry]);
 
   return (
     <EntryForm

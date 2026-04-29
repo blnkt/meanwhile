@@ -11,8 +11,14 @@ type JournalStoreState = {
   entries: JournalEntry[];
   collapsedDayKeys: string[];
   isHydrated: boolean;
-  createEntry: (input: { moodEmoji?: string | null; text: string; startTime?: string; endTime?: string }) => string;
-  updateEntry: (id: string, input: Partial<Pick<JournalEntry, 'moodEmoji' | 'text' | 'startTime' | 'endTime'>>) => void;
+  createEntry: (input: {
+    moodEmoji?: string | null;
+    text: string;
+    startTime?: string;
+    endTime?: string;
+    isEndTimeManual?: boolean;
+  }) => string;
+  updateEntry: (id: string, input: Partial<Pick<JournalEntry, 'moodEmoji' | 'text' | 'startTime' | 'endTime' | 'isEndTimeManual'>>) => void;
   toggleDayCollapsed: (dayKey: string) => void;
   hydrate: () => void;
 };
@@ -25,6 +31,22 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function recomputeImplicitEndTimes(entries: JournalEntry[]) {
+  const ascending = [...entries].sort(
+    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+  );
+  const recomputed = ascending.map((entry) => {
+    if (entry.isEndTimeManual) {
+      return entry;
+    }
+    return {
+      ...entry,
+      endTime: getNextEntryStart(ascending, entry.startTime, { excludeEntryId: entry.id }),
+    };
+  });
+  return sortEntriesByStartDesc(recomputed);
+}
+
 const _useJournalStore = create<JournalStoreState>((set, get) => ({
   entries: [],
   collapsedDayKeys: [],
@@ -32,7 +54,10 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
   createEntry: (input) => {
     const now = new Date().toISOString();
     const startTime = input.startTime ?? now;
-    const endTime = input.endTime ?? getNextEntryStart(get().entries, startTime);
+    const isEndTimeManual = Boolean(input.isEndTimeManual);
+    const endTime = isEndTimeManual
+      ? (input.endTime ?? getNextEntryStart(get().entries, startTime))
+      : getNextEntryStart(get().entries, startTime);
     const entry: JournalEntry = {
       id: makeId(),
       createdAt: now,
@@ -41,16 +66,17 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
       text: input.text,
       startTime,
       endTime,
+      isEndTimeManual,
     };
 
-    const entries = sortEntriesByStartDesc([...get().entries, entry]);
+    const entries = recomputeImplicitEndTimes([...get().entries, entry]);
     set({ entries });
     persistState({ entries, collapsedDayKeys: get().collapsedDayKeys });
     return entry.id;
   },
   updateEntry: (id, input) => {
     const now = new Date().toISOString();
-    const entries = sortEntriesByStartDesc(
+    const entries = recomputeImplicitEndTimes(
       get().entries.map(entry =>
         entry.id === id
           ? {
@@ -78,8 +104,12 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
       JOURNAL_STORAGE_KEY,
     );
     if (stored) {
+      const normalizedEntries = (stored.entries ?? []).map(entry => ({
+        ...entry,
+        isEndTimeManual: entry.isEndTimeManual ?? false,
+      }));
       set({
-        entries: sortEntriesByStartDesc(stored.entries ?? []),
+        entries: recomputeImplicitEndTimes(normalizedEntries),
         collapsedDayKeys: stored.collapsedDayKeys ?? [],
       });
     }
