@@ -8,7 +8,19 @@ import {
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false }}>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarItemStyle: {
+          justifyContent: 'center',
+        },
+        tabBarStyle: {
+          height: 58,
+          paddingBottom: 8,
+          paddingTop: 6,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{

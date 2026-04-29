@@ -242,9 +242,9 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
   }, [blocks, cardBoundsById, gradientHeight, parentGradientColors]);
 
   return (
-    <View className="flex-1 bg-white px-4 pt-14 dark:bg-black">
+    <View className="flex-1 bg-white pt-14 dark:bg-black">
       <FocusAwareStatusBar />
-      <View className="mb-3 gap-2">
+      <View className="mb-3 gap-2 px-4">
         <Text className="text-xl font-bold">
           {selectedGroup ? formatReadableDate(selectedGroup.dayKey) : 'Day Timeline'}
         </Text>
