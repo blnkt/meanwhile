@@ -1,4 +1,70 @@
 {
+  "journal": {
+    "add_entry": "إضافة إدخال",
+    "all_entries": "كل الإدخالات",
+    "auto_end_invalid": "وقت البدء غير صالح",
+    "auto_label": "تلقائي",
+    "auto_prefix": "تلقائي",
+    "back": "رجوع",
+    "create_entry": "إنشاء إدخال",
+    "current_start_preview": "معاينة وقت البدء الحالي:",
+    "custom_prefix": "مخصص",
+    "day_not_found": "لم يتم العثور على اليوم.",
+    "day_timeline": "الخط الزمني لليوم",
+    "end_time": "وقت النهاية:",
+    "entry_text_placeholder": "كيف تشعر الآن؟",
+    "error_choose_end": "يرجى اختيار وقت نهاية صالح.",
+    "error_choose_start": "يرجى اختيار وقت بدء صالح.",
+    "error_end_after_start": "يجب أن يكون وقت النهاية بعد وقت البدء.",
+    "error_require_content": "أضف مزاجًا أو نصًا قبل الحفظ.",
+    "hide_details": "إخفاء التفاصيل",
+    "insight": {
+      "last_7_days": "آخر 7 أيام",
+      "line1": "{{count}} إدخالات • الذروة: {{peak}}",
+      "line2": "المشاعر: {{moods}} • {{trend}}",
+      "no_moods": "لا توجد مشاعر بعد",
+      "trend": {
+        "down": "أقل بمقدار {{count}} عن الأسبوع السابق",
+        "steady": "مستقر مقارنة بالأسبوع السابق",
+        "up": "أعلى بمقدار {{count}} عن الأسبوع السابق"
+      },
+      "window": {
+        "afternoon": "بعد الظهر",
+        "evening": "المساء",
+        "morning": "الصباح",
+        "night": "الليل",
+        "none": "لا توجد ذروة بعد"
+      }
+    },
+    "manual_end_time": "وقت نهاية يدوي",
+    "minute_block": "دقيقة",
+    "mood": "المزاج",
+    "new_entry": "إدخال جديد",
+    "no_entries_yet": "لا توجد إدخالات بعد. أنشئ أول إدخال لك اليوم.",
+    "no_moods_logged": "لا توجد مشاعر مسجلة",
+    "no_text": "(بدون نص)",
+    "prompts": {
+      "energy": "كيف مستوى طاقتك الآن؟",
+      "finished": "ماذا أنهيت للتو؟",
+      "next_step": "ما هي الخطوة الأولى التالية؟"
+    },
+    "quick_note": "ملاحظة سريعة",
+    "save_and_add_another": "احفظ وأضف آخر",
+    "save_changes": "حفظ التغييرات",
+    "saved_checkin": "تم الحفظ. تسجيل ممتاز.",
+    "show_details": "إظهار التفاصيل",
+    "start_time": "وقت البدء:",
+    "start_time_label": "وقت البدء",
+    "start_today": "ابدأ اليوم",
+    "time_details": "تفاصيل الوقت",
+    "timeline": {
+      "collapsed_summary": "{{count}} إدخالات • {{moods}} • {{start}} - {{end}}",
+      "day_view": "عرض اليوم"
+    },
+    "today_cta": "الذهاب إلى اليوم",
+    "toggle_manual_end_time": "تبديل وقت النهاية اليدوي",
+    "try_prompt_prefix": "جرّب:"
+  },
   "onboarding": {
     "message": "مرحبا بكم في موقع تطبيق obytes"
   },
@@ -16,6 +82,7 @@
     "privacy": "سياسة الخصوصية",
     "rate": "تقييم",
     "share": "شارك",
+    "spanish": "إسباني",
     "support": "الدعم",
     "support_us": "ادعمنا",
     "terms": "شروط الخدمة",

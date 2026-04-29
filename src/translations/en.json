@@ -1,4 +1,70 @@
 {
+  "journal": {
+    "add_entry": "Add Entry",
+    "all_entries": "All Entries",
+    "auto_end_invalid": "Invalid start time",
+    "auto_label": "Auto",
+    "auto_prefix": "Auto",
+    "back": "Back",
+    "create_entry": "Create Entry",
+    "current_start_preview": "Current start preview:",
+    "custom_prefix": "Custom",
+    "day_not_found": "Day not found.",
+    "day_timeline": "Day Timeline",
+    "end_time": "End:",
+    "entry_text_placeholder": "How are you feeling right now?",
+    "error_choose_end": "Please choose a valid end time.",
+    "error_choose_start": "Please choose a valid start time.",
+    "error_end_after_start": "End time must be later than start time.",
+    "error_require_content": "Add a mood or some text before saving.",
+    "hide_details": "Hide details",
+    "insight": {
+      "last_7_days": "Last 7 Days",
+      "line1": "{{count}} entries • Peak: {{peak}}",
+      "line2": "Moods: {{moods}} • {{trend}}",
+      "no_moods": "No moods yet",
+      "trend": {
+        "down": "Down {{count}} vs previous week",
+        "steady": "Steady vs previous week",
+        "up": "Up {{count}} vs previous week"
+      },
+      "window": {
+        "afternoon": "Afternoon",
+        "evening": "Evening",
+        "morning": "Morning",
+        "night": "Night",
+        "none": "No peak yet"
+      }
+    },
+    "manual_end_time": "Manual End Time",
+    "minute_block": "minute block",
+    "mood": "Mood",
+    "new_entry": "New Entry",
+    "no_entries_yet": "No entries yet. Create your first entry for today.",
+    "no_moods_logged": "No moods logged",
+    "no_text": "(No text)",
+    "prompts": {
+      "energy": "How is your energy right now?",
+      "finished": "What did you just finish?",
+      "next_step": "What is your next first step?"
+    },
+    "quick_note": "Quick note",
+    "save_and_add_another": "Save and Add Another",
+    "save_changes": "Save Changes",
+    "saved_checkin": "Saved. Nice check-in.",
+    "show_details": "Show details",
+    "start_time": "Start:",
+    "start_time_label": "Start Time",
+    "start_today": "Start Today",
+    "time_details": "Time Details",
+    "timeline": {
+      "collapsed_summary": "{{count}} entries • {{moods}} • {{start}} - {{end}}",
+      "day_view": "Day View"
+    },
+    "today_cta": "Go to Today",
+    "toggle_manual_end_time": "Toggle manual end time",
+    "try_prompt_prefix": "Try:"
+  },
   "onboarding": {
     "message": "Welcome to obytes app site"
   },
@@ -16,6 +82,7 @@
     "privacy": "Privacy Policy",
     "rate": "Rate",
     "share": "Share",
+    "spanish": "Spanish",
     "support": "Support",
     "support_us": "Support Us",
     "terms": "Terms of Service",

@@ -96,8 +96,9 @@ describe('journal-utils', () => {
 
       expect(insight.entryCount).toBe(3);
       expect(insight.topMoods).toEqual(['😀', '😐']);
-      expect(insight.busiestWindowLabel).toBe('Night');
-      expect(insight.trendLabel).toBe('Up 2 vs previous week');
+      expect(insight.busiestWindowKey).toBe('night');
+      expect(insight.trendDirection).toBe('up');
+      expect(insight.trendDelta).toBe(2);
     });
 
     it('returns steady trend when weekly counts match', () => {
@@ -109,7 +110,8 @@ describe('journal-utils', () => {
       const insight = buildSevenDayInsight(entries);
 
       expect(insight.entryCount).toBe(1);
-      expect(insight.trendLabel).toBe('Steady vs previous week');
+      expect(insight.trendDirection).toBe('steady');
+      expect(insight.trendDelta).toBe(0);
     });
   });
 

@@ -15,6 +15,7 @@ import {
   groupEntriesByDay,
 } from '@/features/journal/journal-utils';
 import { useJournalStore } from '@/features/journal/use-journal-store';
+import { translate } from '@/lib/i18n';
 
 type JournalDayTimelineScreenProps = {
   dayKeyOverride?: string;
@@ -40,7 +41,7 @@ function SavedCheckInToast({
         transform: [{ translateY }],
       }}
     >
-      <Text className="text-emerald-800 dark:text-emerald-200">Saved. Nice check-in.</Text>
+      <Text className="text-emerald-800 dark:text-emerald-200">{translate('journal.saved_checkin')}</Text>
     </Animated.View>
   );
 }
@@ -48,26 +49,20 @@ function SavedCheckInToast({
 function LastSevenDaysCard({ insight }: { insight: ReturnType<typeof buildSevenDayInsight> }) {
   return (
     <View className="mx-4 mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900">
-      <Text className="font-semibold">Last 7 Days</Text>
+      <Text className="font-semibold">{translate('journal.insight.last_7_days')}</Text>
       <Text className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
-        {insight.entryCount}
-        {' '}
-        entries
-        {' '}
-        •
-        {' '}
-        Peak:
-        {' '}
-        {insight.busiestWindowLabel}
+        {translate('journal.insight.line1', {
+          count: insight.entryCount,
+          peak: translate(`journal.insight.window.${insight.busiestWindowKey}`),
+        })}
       </Text>
       <Text className="text-sm text-neutral-600 dark:text-neutral-300">
-        Moods:
-        {' '}
-        {insight.topMoods.join(' ') || 'No moods yet'}
-        {' '}
-        •
-        {' '}
-        {insight.trendLabel}
+        {translate('journal.insight.line2', {
+          moods: insight.topMoods.join(' ') || translate('journal.insight.no_moods'),
+          trend: translate(`journal.insight.trend.${insight.trendDirection}`, {
+            count: insight.trendDelta,
+          }),
+        })}
       </Text>
     </View>
   );
@@ -94,9 +89,9 @@ function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
             <Text className="text-sm text-neutral-600 dark:text-neutral-400">
               {durationMinutes}
               {' '}
-              minute block
+              {translate('journal.minute_block')}
             </Text>
-            <Text className="mt-2 text-neutral-800 dark:text-neutral-100">{block.text || '(No text)'}</Text>
+            <Text className="mt-2 text-neutral-800 dark:text-neutral-100">{block.text || translate('journal.no_text')}</Text>
           </View>
         </Pressable>
       </Link>
@@ -264,19 +259,17 @@ function useCardMeasurements(blocks: TimelineBlock[]) {
 }
 
 function useSavedToast(savedFlag: string | undefined) {
-  const [showSavedToast, setShowSavedToast] = React.useState(savedFlag === '1');
+  const showSavedToast = savedFlag === '1';
   const savedToastOpacity = React.useRef(new Animated.Value(savedFlag === '1' ? 1 : 0)).current;
   const savedToastTranslateY = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     if (savedFlag !== '1') {
-      setShowSavedToast(false);
       savedToastOpacity.setValue(0);
       savedToastTranslateY.setValue(0);
       return;
     }
 
-    setShowSavedToast(true);
     savedToastOpacity.setValue(1);
     savedToastTranslateY.setValue(0);
 
@@ -294,7 +287,7 @@ function useSavedToast(savedFlag: string | undefined) {
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
-      ]).start(() => setShowSavedToast(false));
+      ]).start();
     }, 8000);
 
     return () => clearTimeout(timeoutId);
@@ -345,11 +338,11 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
         : null}
       <View className="mb-3 gap-2 px-4">
         <Text className="text-xl font-bold">
-          {selectedGroup ? formatReadableDate(selectedGroup.dayKey) : 'Day Timeline'}
+          {selectedGroup ? formatReadableDate(selectedGroup.dayKey) : translate('journal.day_timeline')}
         </Text>
         <View className="flex-row justify-end gap-2">
           <Link href="/all-entries" asChild>
-            <Button label="All Entries" size="sm" variant="outline" fullWidth={false} />
+            <Button label={translate('journal.all_entries')} size="sm" variant="outline" fullWidth={false} />
           </Link>
         </View>
       </View>
@@ -366,7 +359,7 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
           {!selectedGroup
             ? (
                 <View className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
-                  <Text>Day not found.</Text>
+                  <Text>{translate('journal.day_not_found')}</Text>
                 </View>
               )
             : (
@@ -383,7 +376,7 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
       </ScrollView>
       <View className="px-4 pt-2 pb-4">
         <Button
-          label="Add Entry"
+          label={translate('journal.add_entry')}
           onPress={() => router.push(`/entry/new?day-key=${dayKey}`)}
         />
       </View>

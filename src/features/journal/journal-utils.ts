@@ -1,4 +1,5 @@
 import type { DayGroup, JournalEntry, TimelineBlock } from './types';
+import { formatJournalReadableDate, formatJournalReadableTime } from './journal-formatters';
 
 export function toDayKey(dateString: string) {
   const date = new Date(dateString);
@@ -9,21 +10,11 @@ export function toDayKey(dateString: string) {
 }
 
 export function formatReadableDate(dayKey: string) {
-  const date = new Date(`${dayKey}T00:00:00`);
-  return date.toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  return formatJournalReadableDate(dayKey);
 }
 
 export function formatReadableTime(value: string) {
-  const date = new Date(value);
-  return date.toLocaleTimeString(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  return formatJournalReadableTime(value);
 }
 
 export function formatDateTimeInputValue(value: string) {
@@ -121,10 +112,11 @@ export function buildDayTimelineBlocks(entries: JournalEntry[]): TimelineBlock[]
 }
 
 export type SevenDayInsight = {
-  busiestWindowLabel: string;
+  busiestWindowKey: 'afternoon' | 'evening' | 'morning' | 'night' | 'none';
   entryCount: number;
   topMoods: string[];
-  trendLabel: string;
+  trendDelta: number;
+  trendDirection: 'down' | 'steady' | 'up';
 };
 
 function getDayStart(input: Date) {
@@ -139,17 +131,17 @@ function getDayEnd(input: Date) {
   return result;
 }
 
-function getWindowLabel(hour: number) {
+function getWindowKey(hour: number): SevenDayInsight['busiestWindowKey'] {
   if (hour < 6) {
-    return 'Night';
+    return 'night';
   }
   if (hour < 12) {
-    return 'Morning';
+    return 'morning';
   }
   if (hour < 18) {
-    return 'Afternoon';
+    return 'afternoon';
   }
-  return 'Evening';
+  return 'evening';
 }
 
 export function buildSevenDayInsight(entries: JournalEntry[]): SevenDayInsight {
@@ -167,36 +159,36 @@ export function buildSevenDayInsight(entries: JournalEntry[]): SevenDayInsight {
   });
 
   const moodCountMap = new Map<string, number>();
-  const windowCountMap = new Map<string, number>();
+  const windowCountMap = new Map<SevenDayInsight['busiestWindowKey'], number>();
   for (const entry of currentPeriodEntries) {
     if (entry.moodEmoji) {
       moodCountMap.set(entry.moodEmoji, (moodCountMap.get(entry.moodEmoji) ?? 0) + 1);
     }
     const hour = new Date(entry.startTime).getHours();
-    const windowLabel = getWindowLabel(hour);
-    windowCountMap.set(windowLabel, (windowCountMap.get(windowLabel) ?? 0) + 1);
+    const windowKey = getWindowKey(hour);
+    windowCountMap.set(windowKey, (windowCountMap.get(windowKey) ?? 0) + 1);
   }
   const topMoods = [...moodCountMap.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([mood]) => mood);
-  const busiestWindowLabel = [...windowCountMap.entries()]
-    .sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'No peak yet';
+  const busiestWindowKey = [...windowCountMap.entries()]
+    .sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'none';
   const currentCount = currentPeriodEntries.length;
   const previousCount = previousPeriodEntries.length;
-  let trendLabel = 'Steady vs previous week';
-  if (currentCount > previousCount) {
-    trendLabel = `Up ${currentCount - previousCount} vs previous week`;
-  }
-  else if (currentCount < previousCount) {
-    trendLabel = `Down ${previousCount - currentCount} vs previous week`;
-  }
+  const trendDirection = currentCount > previousCount
+    ? 'up'
+    : currentCount < previousCount
+      ? 'down'
+      : 'steady';
+  const trendDelta = Math.abs(currentCount - previousCount);
 
   return {
     entryCount: currentCount,
     topMoods,
-    busiestWindowLabel,
-    trendLabel,
+    busiestWindowKey,
+    trendDelta,
+    trendDirection,
   };
 }
 

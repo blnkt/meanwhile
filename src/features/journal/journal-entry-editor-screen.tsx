@@ -1,9 +1,10 @@
 import type { JournalEntry } from './types';
+import type { TxKeyPath } from '@/lib/i18n';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
 import { Platform, TextInput } from 'react-native';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {
   Button,
   FocusAwareStatusBar,
@@ -14,6 +15,8 @@ import {
   Text,
   View,
 } from '@/components/ui';
+import { translate } from '@/lib/i18n';
+import { formatJournalDateTimeDisplay } from './journal-formatters';
 import {
   formatDateTimeInputValue,
   formatReadableTime,
@@ -24,15 +27,15 @@ import {
 import { useJournalStore } from './use-journal-store';
 
 const MOOD_OPTIONS = ['😀', '🙂', '😐', '😔', '😤', '😍'];
-const INTERSTITIAL_PROMPTS = [
-  'What did you just finish?',
-  'What is your next first step?',
-  'How is your energy right now?',
+const INTERSTITIAL_PROMPT_KEYS: TxKeyPath[] = [
+  'journal.prompts.finished',
+  'journal.prompts.next_step',
+  'journal.prompts.energy',
 ];
 
-function getStablePrompt(seedValue: string) {
+function getStablePrompt(seedValue: string): TxKeyPath {
   const seed = [...seedValue].reduce((total, char) => total + char.charCodeAt(0), 0);
-  return INTERSTITIAL_PROMPTS[seed % INTERSTITIAL_PROMPTS.length];
+  return INTERSTITIAL_PROMPT_KEYS[seed % INTERSTITIAL_PROMPT_KEYS.length];
 }
 
 type EntryDraft = {
@@ -78,7 +81,7 @@ function MoodPicker({
 }) {
   return (
     <View className="mt-2 mb-3">
-      <Text className="mb-1 font-semibold">Mood</Text>
+      <Text className="mb-1 font-semibold">{translate('journal.mood')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View className="flex-row gap-2 pr-2">
           {MOOD_OPTIONS.map(option => (
@@ -118,12 +121,7 @@ function DateTimeField({
 }: DateTimeFieldProps) {
   const parsed = parseDateTimeInput(value);
   const pickerDate = parsed ? new Date(parsed) : new Date();
-  const displayValue = pickerDate.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  const displayValue = formatJournalDateTimeDisplay(pickerDate.toISOString());
   if (Platform.OS === 'web') {
     return (
       <Input
@@ -190,22 +188,22 @@ function EndTimeSection({
   return (
     <View className="mb-2 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
       <View className="flex-row items-center justify-between">
-        <Text className="font-semibold">Manual End Time</Text>
+        <Text className="font-semibold">{translate('journal.manual_end_time')}</Text>
         <Switch
           checked={showCustomEndTime}
           onChange={setShowCustomEndTime}
-          accessibilityLabel="Toggle manual end time"
+          accessibilityLabel={translate('journal.toggle_manual_end_time')}
         />
       </View>
       <Text className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
         {showCustomEndTime
-          ? `Custom: ${draft.endValue}`
-          : `Auto: ${autoEndValue ?? 'Invalid start time'}`}
+          ? `${translate('journal.custom_prefix')}: ${draft.endValue}`
+          : `${translate('journal.auto_prefix')}: ${autoEndValue ?? translate('journal.auto_end_invalid')}`}
       </Text>
       {showCustomEndTime
         ? (
             <DateTimeField
-              label="Custom End Time"
+              label={translate('journal.manual_end_time')}
               value={draft.endValue}
               onChangeText={endValue =>
                 setDraft(previous => ({
@@ -259,26 +257,28 @@ function TimeSection({
         className="flex-row items-center justify-between"
         onPress={() => setIsTimeSectionExpanded(previous => !previous)}
       >
-        <Text className="font-semibold">Time Details</Text>
+        <Text className="font-semibold">{translate('journal.time_details')}</Text>
         <Text className="font-medium text-primary-600 underline dark:text-primary-300">
-          {isTimeSectionExpanded ? 'Hide details' : 'Show details'}
+          {isTimeSectionExpanded ? translate('journal.hide_details') : translate('journal.show_details')}
         </Text>
       </Pressable>
       <Text className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
-        Start:
+        {translate('journal.start_time')}
         {' '}
         {draft.startValue}
         {' '}
-        | End:
+        |
         {' '}
-        {showCustomEndTime ? draft.endValue : (autoEndValue ?? 'Auto')}
+        {translate('journal.end_time')}
+        {' '}
+        {showCustomEndTime ? draft.endValue : (autoEndValue ?? translate('journal.auto_label'))}
       </Text>
 
       {isTimeSectionExpanded
         ? (
             <View className="mt-2">
               <DateTimeField
-                label="Start Time"
+                label={translate('journal.start_time_label')}
                 value={draft.startValue}
                 onChangeText={startValue =>
                   setDraft(previous => ({
@@ -316,7 +316,7 @@ function TimeSection({
 function StartTimePreview({ startValue }: { startValue: string }) {
   return (
     <Text className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-      Current start preview:
+      {translate('journal.current_start_preview')}
       {' '}
       {formatReadableTime(parseDateTimeInput(startValue) ?? new Date().toISOString())}
     </Text>
@@ -337,7 +337,10 @@ function EntryForm({
 }: EntryFormProps) {
   const [activePicker, setActivePicker] = React.useState<'start' | 'end' | null>(null);
   const [isTimeSectionExpanded, setIsTimeSectionExpanded] = React.useState(false);
-  const prompt = React.useMemo(() => getStablePrompt(draft.startValue), [draft.startValue]);
+  const prompt = React.useMemo(
+    () => translate(getStablePrompt(draft.startValue)),
+    [draft.startValue],
+  );
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
@@ -345,10 +348,10 @@ function EntryForm({
       <ScrollView className="flex-1 px-4 pt-14">
         <View className="mb-4 flex-row items-center justify-between">
           <Text className="text-2xl font-bold">
-            {editingEntry ? 'Edit Entry' : 'New Entry'}
+            {editingEntry ? translate('journal.save_changes') : translate('journal.new_entry')}
           </Text>
           <Button
-            label="Back"
+            label={translate('journal.back')}
             size="sm"
             variant="outline"
             fullWidth={false}
@@ -367,7 +370,7 @@ function EntryForm({
             }))}
         />
 
-        <Text className="my-1 font-semibold">Quick note</Text>
+        <Text className="my-1 font-semibold">{translate('journal.quick_note')}</Text>
         <TextInput
           className="mb-3 rounded-xl border border-neutral-300 bg-neutral-100 p-3 text-base text-black dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           returnKeyType="done"
@@ -377,7 +380,7 @@ function EntryForm({
               ...previous,
               text,
             }))}
-          placeholder={prompt}
+          placeholder={prompt || translate('journal.entry_text_placeholder')}
           placeholderTextColor="#9ca3af"
         />
 
@@ -403,11 +406,11 @@ function EntryForm({
 
         <View className="mt-4 mb-8 gap-2">
           <Button
-            label={editingEntry ? 'Save Changes' : 'Create Entry'}
+            label={editingEntry ? translate('journal.save_changes') : translate('journal.create_entry')}
             onPress={onSave}
           />
           <Button
-            label="Save and Add Another"
+            label={translate('journal.save_and_add_another')}
             variant="outline"
             onPress={onSaveAndAddAnother}
           />
@@ -439,13 +442,13 @@ function useSaveEntry({
     const hasMood = Boolean(draft.moodEmoji);
     const hasText = trimmedText.length > 0;
     if (!hasMood && !hasText) {
-      setValidationMessage('Add a mood or some text before saving.');
+      setValidationMessage(translate('journal.error_require_content'));
       return;
     }
 
     const start = parseDateTimeInput(draft.startValue);
     if (!start) {
-      setValidationMessage('Please choose a valid start time.');
+      setValidationMessage(translate('journal.error_choose_start'));
       return;
     }
     const computedAutoEnd = getNextEntryStart(
@@ -456,11 +459,11 @@ function useSaveEntry({
     const customEnd = parseDateTimeInput(draft.endValue);
     const end = showCustomEndTime ? customEnd : computedAutoEnd;
     if (!end) {
-      setValidationMessage('Please choose a valid end time.');
+      setValidationMessage(translate('journal.error_choose_end'));
       return;
     }
     if (new Date(end).getTime() <= new Date(start).getTime()) {
-      setValidationMessage('End time must be later than start time.');
+      setValidationMessage(translate('journal.error_end_after_start'));
       return;
     }
     setValidationMessage(null);

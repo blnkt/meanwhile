@@ -1,0 +1,100 @@
+{
+  "journal": {
+    "add_entry": "Agregar entrada",
+    "all_entries": "Todas las entradas",
+    "auto_end_invalid": "Hora de inicio no valida",
+    "auto_label": "Auto",
+    "auto_prefix": "Auto",
+    "back": "Volver",
+    "create_entry": "Crear entrada",
+    "current_start_preview": "Vista previa de la hora de inicio:",
+    "custom_prefix": "Manual",
+    "day_not_found": "Dia no encontrado.",
+    "day_timeline": "Resumen del dia",
+    "end_time": "Fin:",
+    "entry_text_placeholder": "Como te sientes en este momento?",
+    "error_choose_end": "Elige una hora de fin valida.",
+    "error_choose_start": "Elige una hora de inicio valida.",
+    "error_end_after_start": "La hora de fin debe ser posterior al inicio.",
+    "error_require_content": "Agrega un estado de animo o una nota antes de guardar.",
+    "hide_details": "Ocultar detalles",
+    "insight": {
+      "last_7_days": "Ultimos 7 dias",
+      "line1": "{{count}} entradas • Pico: {{peak}}",
+      "line2": "Estados de animo: {{moods}} • {{trend}}",
+      "no_moods": "Aun sin estados de animo",
+      "trend": {
+        "down": "Bajo {{count}} frente a la semana anterior",
+        "steady": "Estable frente a la semana anterior",
+        "up": "Subio {{count}} frente a la semana anterior"
+      },
+      "window": {
+        "afternoon": "Tarde",
+        "evening": "Noche",
+        "morning": "Manana",
+        "night": "Madrugada",
+        "none": "Sin pico aun"
+      }
+    },
+    "manual_end_time": "Hora de fin manual",
+    "minute_block": "minutos",
+    "mood": "Estado de animo",
+    "new_entry": "Nueva entrada",
+    "no_entries_yet": "Todavia no hay entradas. Crea tu primera entrada de hoy.",
+    "no_moods_logged": "Sin estados de animo registrados",
+    "no_text": "(Sin texto)",
+    "prompts": {
+      "energy": "Como esta tu energia ahora?",
+      "finished": "Que acabas de terminar?",
+      "next_step": "Cual es tu siguiente paso?"
+    },
+    "quick_note": "Nota rapida",
+    "save_and_add_another": "Guardar y agregar otra",
+    "save_changes": "Guardar cambios",
+    "saved_checkin": "Guardado. Buen registro.",
+    "show_details": "Mostrar detalles",
+    "start_time": "Inicio:",
+    "start_time_label": "Hora de inicio",
+    "start_today": "Empezar hoy",
+    "time_details": "Detalles de horario",
+    "timeline": {
+      "collapsed_summary": "{{count}} entradas • {{moods}} • {{start}} - {{end}}",
+      "day_view": "Ver dia"
+    },
+    "today_cta": "Ir a hoy",
+    "toggle_manual_end_time": "Alternar hora de fin manual",
+    "try_prompt_prefix": "Prueba:"
+  },
+  "onboarding": {
+    "message": "Bienvenido al sitio de la app obytes"
+  },
+  "settings": {
+    "about": "Acerca de",
+    "app_name": "Nombre de la aplicacion",
+    "arabic": "Arabe",
+    "english": "Ingles",
+    "generale": "General",
+    "github": "Github",
+    "language": "Idioma",
+    "links": "Enlaces",
+    "logout": "Cerrar sesion",
+    "more": "Mas",
+    "privacy": "Politica de privacidad",
+    "rate": "Calificar",
+    "share": "Compartir",
+    "spanish": "Espanol (Latinoamerica)",
+    "support": "Soporte",
+    "support_us": "Apoyanos",
+    "terms": "Terminos de servicio",
+    "theme": {
+      "dark": "Oscuro",
+      "light": "Claro",
+      "system": "Sistema",
+      "title": "Tema"
+    },
+    "title": "Configuracion",
+    "version": "Version",
+    "website": "Sitio web"
+  },
+  "welcome": "Bienvenido al sitio de la app obytes"
+}

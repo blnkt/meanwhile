@@ -1,18 +1,19 @@
 import { Link, useRouter } from 'expo-router';
 import * as React from 'react';
 import { Button, FocusAwareStatusBar, Pressable, ScrollView, Text, View } from '@/components/ui';
+import { translate } from '@/lib/i18n';
 import { formatReadableDate, formatReadableTime, getTodayKey, groupEntriesByDay } from './journal-utils';
 import { useJournalStore } from './use-journal-store';
 
-const INTERSTITIAL_EMPTY_PROMPTS = [
-  'What did you just finish?',
-  'What are you about to do next?',
-  'How is your focus right now?',
-];
+const INTERSTITIAL_EMPTY_PROMPT_KEYS = [
+  'journal.prompts.finished',
+  'journal.prompts.next_step',
+  'journal.prompts.energy',
+] as const;
 
 function getStablePrompt(dayKey: string) {
   const seed = dayKey.split('-').reduce((total, part) => total + Number.parseInt(part, 10), 0);
-  return INTERSTITIAL_EMPTY_PROMPTS[seed % INTERSTITIAL_EMPTY_PROMPTS.length];
+  return INTERSTITIAL_EMPTY_PROMPT_KEYS[seed % INTERSTITIAL_EMPTY_PROMPT_KEYS.length];
 }
 
 function buildCollapsedSummary(entries: { moodEmoji: string | null; startTime: string; endTime: string }[]) {
@@ -29,14 +30,19 @@ function buildCollapsedSummary(entries: { moodEmoji: string | null; startTime: s
     .slice(0, 3)
     .map(([mood]) => mood)
     .join('');
-  const moodSummary = topMoods || 'No moods logged';
+  const moodSummary = topMoods || translate('journal.no_moods_logged');
 
   const startTimes = entries.map(entry => new Date(entry.startTime).getTime());
   const endTimes = entries.map(entry => new Date(entry.endTime).getTime());
   const earliestStart = new Date(Math.min(...startTimes)).toISOString();
   const latestEnd = new Date(Math.max(...endTimes)).toISOString();
 
-  return `${entryCount} entries • ${moodSummary} • ${formatReadableTime(earliestStart)} - ${formatReadableTime(latestEnd)}`;
+  return translate('journal.timeline.collapsed_summary', {
+    count: entryCount,
+    moods: moodSummary,
+    start: formatReadableTime(earliestStart),
+    end: formatReadableTime(latestEnd),
+  });
 }
 
 function splitReadableDate(dayKey: string) {
@@ -51,10 +57,10 @@ function EmptyStateCard({ prompt }: { prompt: string }) {
   return (
     <View className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
       <Text className="text-neutral-600 dark:text-neutral-300">
-        No entries yet. Create your first entry for today.
+        {translate('journal.no_entries_yet')}
       </Text>
       <Text className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-        Try:
+        {translate('journal.try_prompt_prefix')}
         {' '}
         {prompt}
       </Text>
@@ -98,7 +104,7 @@ function DayGroupCard({
         </View>
         <Button
           className="self-start"
-          label="Day View"
+          label={translate('journal.timeline.day_view')}
           size="sm"
           variant="outline"
           fullWidth={false}
@@ -115,7 +121,7 @@ function DayGroupCard({
                     {formatReadableTime(entry.startTime)}
                   </Text>
                   <Text numberOfLines={2} className="mt-1 text-neutral-700 dark:text-neutral-300">
-                    {entry.text || '(No text)'}
+                    {entry.text || translate('journal.no_text')}
                   </Text>
                 </Pressable>
               </Link>
@@ -139,17 +145,17 @@ export function JournalTimelineScreen() {
   const dayGroups = React.useMemo(() => groupEntriesByDay(entries), [entries]);
   const todayKey = getTodayKey();
   const hasTodayEntries = dayGroups.some(group => group.dayKey === todayKey);
-  const emptyPrompt = getStablePrompt(todayKey);
+  const emptyPrompt = translate(getStablePrompt(todayKey));
 
   return (
     <View className="flex-1 bg-white px-4 pt-14 dark:bg-black">
       <FocusAwareStatusBar />
       <View className="mb-3">
-        <Text className="text-2xl font-bold">All Entries</Text>
+        <Text className="text-2xl font-bold">{translate('journal.all_entries')}</Text>
       </View>
 
       <Button
-        label={hasTodayEntries ? 'Go to Today' : 'Start Today'}
+        label={hasTodayEntries ? translate('journal.today_cta') : translate('journal.start_today')}
         variant="outline"
         size="sm"
         onPress={() => {
@@ -180,7 +186,7 @@ export function JournalTimelineScreen() {
             )}
       </ScrollView>
       <View className="pt-2 pb-4">
-        <Button label="Add Entry" onPress={() => router.push('/entry/new')} />
+        <Button label={translate('journal.add_entry')} onPress={() => router.push('/entry/new')} />
       </View>
     </View>
   );
