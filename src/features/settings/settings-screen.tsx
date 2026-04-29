@@ -7,6 +7,7 @@ import {
   View,
 } from '@/components/ui';
 import { translate } from '@/lib/i18n';
+import { ICloudSyncItem } from './components/icloud-sync-item';
 import { LanguageItem } from './components/language-item';
 import { SettingsContainer } from './components/settings-container';
 import { SettingsItem } from './components/settings-item';
@@ -25,6 +26,7 @@ export function SettingsScreen() {
           <SettingsContainer title="settings.generale">
             <LanguageItem />
             <ThemeItem />
+            <ICloudSyncItem />
           </SettingsContainer>
 
           <SettingsContainer title="settings.about">

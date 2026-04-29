@@ -1,6 +1,10 @@
 import { useJournalStore } from './use-journal-store';
 
 jest.mock('@/lib/storage', () => ({
+  storage: {
+    getBoolean: jest.fn(() => false),
+    set: jest.fn(),
+  },
   getItem: jest.fn(() => null),
   setItem: jest.fn(),
 }));

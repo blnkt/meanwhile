@@ -1,11 +1,18 @@
 import type { JournalEntry } from './types';
 
 import { create } from 'zustand';
+import {
+  getICloudJson,
+  isICloudSyncEnabled,
+  removeICloudKey,
+  setICloudJson,
+} from '@/lib/icloud-sync';
 import { getItem, setItem } from '@/lib/storage';
 import { createSelectors } from '@/lib/utils';
 import { getNextEntryStart, sortEntriesByStartDesc } from './journal-utils';
 
 const JOURNAL_STORAGE_KEY = 'journal-store-v1';
+const JOURNAL_CLOUD_STORAGE_KEY = 'journal-store-v1-cloud';
 
 type JournalStoreState = {
   entries: JournalEntry[];
@@ -23,8 +30,34 @@ type JournalStoreState = {
   hydrate: () => void;
 };
 
-function persistState(state: Pick<JournalStoreState, 'entries' | 'collapsedDayKeys'>) {
+type PersistedJournalState = Pick<JournalStoreState, 'entries' | 'collapsedDayKeys'>;
+
+function latestUpdatedAtMs(entries: JournalEntry[]) {
+  return entries.reduce((latest, entry) => {
+    const next = new Date(entry.updatedAt).getTime();
+    return Number.isFinite(next) && next > latest ? next : latest;
+  }, 0);
+}
+
+function persistState(state: PersistedJournalState) {
   void setItem(JOURNAL_STORAGE_KEY, state);
+  if (!isICloudSyncEnabled()) {
+    return;
+  }
+  void setICloudJson(JOURNAL_CLOUD_STORAGE_KEY, state);
+}
+
+async function pullFromCloudIfNewer(localState: PersistedJournalState): Promise<PersistedJournalState> {
+  if (!isICloudSyncEnabled()) {
+    return localState;
+  }
+  const cloudState = await getICloudJson<PersistedJournalState>(JOURNAL_CLOUD_STORAGE_KEY);
+  if (!cloudState) {
+    return localState;
+  }
+  const localLatest = latestUpdatedAtMs(localState.entries);
+  const cloudLatest = latestUpdatedAtMs(cloudState.entries);
+  return cloudLatest > localLatest ? cloudState : localState;
 }
 
 function makeId() {
@@ -100,23 +133,43 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
     persistState({ entries: get().entries, collapsedDayKeys });
   },
   hydrate: () => {
-    const stored = getItem<Pick<JournalStoreState, 'entries' | 'collapsedDayKeys'>>(
+    const stored = getItem<PersistedJournalState>(
       JOURNAL_STORAGE_KEY,
     );
-    if (stored) {
-      const normalizedEntries = (stored.entries ?? []).map(entry => ({
-        ...entry,
-        isEndTimeManual: entry.isEndTimeManual ?? false,
-      }));
-      set({
-        entries: recomputeImplicitEndTimes(normalizedEntries),
-        collapsedDayKeys: stored.collapsedDayKeys ?? [],
+    const localState: PersistedJournalState = {
+      entries: stored?.entries ?? [],
+      collapsedDayKeys: stored?.collapsedDayKeys ?? [],
+    };
+    void pullFromCloudIfNewer(localState)
+      .then((selectedState) => {
+        const normalizedEntries = (selectedState.entries ?? []).map(entry => ({
+          ...entry,
+          isEndTimeManual: entry.isEndTimeManual ?? false,
+        }));
+        const entries = recomputeImplicitEndTimes(normalizedEntries);
+        const collapsedDayKeys = selectedState.collapsedDayKeys ?? [];
+        set({
+          entries,
+          collapsedDayKeys,
+          isHydrated: true,
+        });
+        persistState({ entries, collapsedDayKeys });
+      })
+      .catch(() => {
+        set({ isHydrated: true });
       });
-    }
-    set({ isHydrated: true });
   },
 }));
 
 export const useJournalStore = createSelectors(_useJournalStore);
 
 export const hydrateJournal = () => _useJournalStore.getState().hydrate();
+
+export function syncJournalToICloud() {
+  const state = _useJournalStore.getState();
+  persistState({ entries: state.entries, collapsedDayKeys: state.collapsedDayKeys });
+}
+
+export async function clearJournalFromICloud() {
+  await removeICloudKey(JOURNAL_CLOUD_STORAGE_KEY);
+}
