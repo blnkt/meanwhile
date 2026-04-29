@@ -1,6 +1,7 @@
 import type { JournalEntry } from './types';
 
 import {
+  addMinutesCappedToEndOfDay,
   buildDayTimelineBlocks,
   buildSevenDayInsight,
   endOfDay,
@@ -41,6 +42,9 @@ describe('journal-utils', () => {
       makeEntry({ id: 'c', startTime: '2026-04-29T13:00:00.000Z' }),
     ];
     expect(getNextEntryStart(nextStartEntries, '2026-04-29T10:30:00.000Z')).toBe('2026-04-29T11:00:00.000Z');
+    expect(getNextEntryStart(nextStartEntries, '2026-04-29T14:00:00.000Z')).toBe(
+      addMinutesCappedToEndOfDay('2026-04-29T14:00:00.000Z', 30),
+    );
 
     const excludedEntries = [
       makeEntry({ id: 'a', startTime: '2026-04-29T09:00:00.000Z' }),
@@ -56,7 +60,7 @@ describe('journal-utils', () => {
     const fallbackBlocks = buildDayTimelineBlocks(fallbackBlockEntries);
     expect(fallbackBlocks[0].startTime).toBe('2026-04-29T09:00:00.000Z');
     expect(fallbackBlocks[0].endTime).toBe('2026-04-29T10:00:00.000Z');
-    expect(fallbackBlocks[1].endTime).toBe(endOfDay('2026-04-29T10:00:00.000Z'));
+    expect(fallbackBlocks[1].endTime).toBe(addMinutesCappedToEndOfDay('2026-04-29T10:00:00.000Z', 30));
 
     const overriddenBlockEntries = [
       makeEntry({

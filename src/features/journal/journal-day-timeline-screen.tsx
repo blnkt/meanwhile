@@ -72,6 +72,13 @@ function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
   const startMs = new Date(block.startTime).getTime();
   const endMs = new Date(block.endTime).getTime();
   const durationMinutes = Math.max(1, Math.round((endMs - startMs) / 60000));
+  const durationHours = Math.floor(durationMinutes / 60);
+  const remainingMinutes = durationMinutes % 60;
+  const durationLabel = durationHours > 0
+    ? remainingMinutes > 0
+      ? `${durationHours}h ${remainingMinutes}m`
+      : `${durationHours}h`
+    : `${durationMinutes}m`;
 
   return (
     <View className="mb-3" onLayout={event => onMeasure(block.entryId, event)}>
@@ -87,9 +94,7 @@ function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
               {formatReadableTime(block.endTime)}
             </Text>
             <Text className="text-sm text-neutral-600 dark:text-neutral-400">
-              {durationMinutes}
-              {' '}
-              {translate('journal.minute_block')}
+              {durationLabel}
             </Text>
             <Text className="mt-2 text-neutral-800 dark:text-neutral-100">{block.text || translate('journal.no_text')}</Text>
           </View>

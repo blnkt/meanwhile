@@ -1,6 +1,8 @@
 import type { DayGroup, JournalEntry, TimelineBlock } from './types';
 import { formatJournalReadableDate, formatJournalReadableTime } from './journal-formatters';
 
+const DEFAULT_ENTRY_DURATION_MINUTES = 30;
+
 export function toDayKey(dateString: string) {
   const date = new Date(dateString);
   const year = date.getFullYear();
@@ -76,7 +78,7 @@ export function getNextEntryStart(
     }
     return new Date(entry.startTime).getTime() > target;
   });
-  return next?.startTime ?? endOfDay(startTime);
+  return next?.startTime ?? addMinutesCappedToEndOfDay(startTime, DEFAULT_ENTRY_DURATION_MINUTES);
 }
 
 export function endOfDay(dateValue: string) {
@@ -100,7 +102,9 @@ export function buildDayTimelineBlocks(entries: JournalEntry[]): TimelineBlock[]
   );
   return sorted.map((entry, index) => {
     const next = sorted[index + 1];
-    const computedEnd = next ? next.startTime : endOfDay(entry.startTime);
+    const computedEnd = next
+      ? next.startTime
+      : addMinutesCappedToEndOfDay(entry.startTime, DEFAULT_ENTRY_DURATION_MINUTES);
     return {
       entryId: entry.id,
       startTime: entry.startTime,
