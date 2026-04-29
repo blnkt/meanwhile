@@ -28,6 +28,14 @@ function buildCollapsedSummary(entries: { moodEmoji: string | null; startTime: s
   return `${entryCount} entries • ${moodSummary} • ${formatReadableTime(earliestStart)} - ${formatReadableTime(latestEnd)}`;
 }
 
+function splitReadableDate(dayKey: string) {
+  const full = formatReadableDate(dayKey);
+  const parts = full.split(', ');
+  const dayName = parts[0] ?? full;
+  const rest = parts.slice(1).join(', ') || full;
+  return { dayName, rest };
+}
+
 export function JournalTimelineScreen() {
   const router = useRouter();
   const entries = useJournalStore.use.entries();
@@ -42,7 +50,7 @@ export function JournalTimelineScreen() {
     <View className="flex-1 bg-white px-4 pt-14 dark:bg-black">
       <FocusAwareStatusBar />
       <View className="mb-3 flex-row items-center justify-between">
-        <Text className="text-2xl font-bold">Journal</Text>
+        <Text className="text-2xl font-bold">All Entries</Text>
         <Link href="/entry/new" asChild>
           <Button label="New Entry" size="sm" fullWidth={false} />
         </Link>
@@ -74,20 +82,30 @@ export function JournalTimelineScreen() {
               dayGroups.map((group) => {
                 const isCollapsed = collapsedDayKeys.includes(group.dayKey);
                 const collapsedSummary = buildCollapsedSummary(group.entries);
+                const { dayName, rest } = splitReadableDate(group.dayKey);
                 return (
                   <View
                     key={group.dayKey}
                     className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800"
                   >
-                    <View className="mb-2 flex-row items-center justify-between">
-                      <Pressable onPress={() => toggleDayCollapsed(group.dayKey)}>
-                        <Text className="font-semibold">
-                          {isCollapsed ? '▶' : '▼'}
-                          {' '}
-                          {formatReadableDate(group.dayKey)}
-                        </Text>
-                      </Pressable>
+                    <View className="mb-2 flex-row flex-wrap items-start justify-between gap-y-2">
+                      <View className="min-w-0 flex-1 pr-2">
+                        <Pressable onPress={() => toggleDayCollapsed(group.dayKey)}>
+                          <View className="flex-row items-start">
+                            <Text className="w-5 font-semibold">{isCollapsed ? '▶' : '▼'}</Text>
+                            <View className="min-w-0 flex-1">
+                              <Text numberOfLines={1} className="font-semibold">
+                                {dayName}
+                              </Text>
+                              <Text numberOfLines={1} className="text-sm text-neutral-600 dark:text-neutral-300">
+                                {rest}
+                              </Text>
+                            </View>
+                          </View>
+                        </Pressable>
+                      </View>
                       <Button
+                        className="self-start"
                         label="Day View"
                         size="sm"
                         variant="outline"
