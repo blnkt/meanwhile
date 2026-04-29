@@ -119,3 +119,57 @@ export function buildDayTimelineBlocks(entries: JournalEntry[]): TimelineBlock[]
     };
   });
 }
+
+const DAY_SLICE_GRADIENT = {
+  light: { from: '#eef2f7', to: '#f6ebe3' },
+  dark: { from: '#12161e', to: '#231f18' },
+} as const;
+
+function hexToRgb(hex: string): { b: number; g: number; r: number } {
+  let h = hex.replace('#', '');
+  if (h.length === 3) {
+    h = h.split('').map(c => c + c).join('');
+  }
+  const n = Number.parseInt(h, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b].map(x => Math.round(x).toString(16).padStart(2, '0')).join('')}`;
+}
+
+function lerpHex(from: string, to: string, t: number): string {
+  const a = hexToRgb(from);
+  const b = hexToRgb(to);
+  const u = Math.min(1, Math.max(0, t));
+  return rgbToHex(
+    a.r + (b.r - a.r) * u,
+    a.g + (b.g - a.g) * u,
+    a.b + (b.b - a.b) * u,
+  );
+}
+
+export type DayColorScheme = 'light' | 'dark';
+
+export function getDaySliceGradientColors(input: {
+  dayKey: string;
+  endIso: string;
+  scheme: DayColorScheme;
+  startIso: string;
+}): [string, string] {
+  const { dayKey, endIso, scheme, startIso } = input;
+  const dayStart = new Date(`${dayKey}T00:00:00.000`).getTime();
+  const dayEnd = new Date(`${dayKey}T23:59:59.999`).getTime();
+  const duration = dayEnd - dayStart;
+  const startMs = new Date(startIso).getTime();
+  const endMs = new Date(endIso).getTime();
+  let t0 = (startMs - dayStart) / duration;
+  let t1 = (endMs - dayStart) / duration;
+  t0 = Math.min(1, Math.max(0, t0));
+  t1 = Math.min(1, Math.max(0, t1));
+  if (t1 <= t0) {
+    t1 = Math.min(1, t0 + 1 / Math.max(duration, 1));
+  }
+  const { from, to } = DAY_SLICE_GRADIENT[scheme];
+  return [lerpHex(from, to, t0), lerpHex(from, to, t1)];
+}
