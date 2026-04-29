@@ -2,13 +2,14 @@ import type { LayoutChangeEvent } from 'react-native';
 
 import type { TimelineBlock } from '@/features/journal/types';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
-import { useColorScheme } from 'react-native';
+import { Animated, Easing, useColorScheme } from 'react-native';
 
 import { Button, FocusAwareStatusBar, Pressable, ScrollView, Text, View } from '@/components/ui';
 import {
   buildDayTimelineBlocks,
+  buildSevenDayInsight,
   formatReadableDate,
   formatReadableTime,
   groupEntriesByDay,
@@ -23,6 +24,54 @@ type DayEntryCardProps = {
   block: TimelineBlock;
   onMeasure: (entryId: string, event: LayoutChangeEvent) => void;
 };
+
+function SavedCheckInToast({
+  opacity,
+  translateY,
+}: {
+  opacity: Animated.Value;
+  translateY: Animated.Value;
+}) {
+  return (
+    <Animated.View
+      className="rounded-xl border border-emerald-300 bg-emerald-100 px-3 py-2 dark:border-emerald-700 dark:bg-emerald-950/60"
+      style={{
+        opacity,
+        transform: [{ translateY }],
+      }}
+    >
+      <Text className="text-emerald-800 dark:text-emerald-200">Saved. Nice check-in.</Text>
+    </Animated.View>
+  );
+}
+
+function LastSevenDaysCard({ insight }: { insight: ReturnType<typeof buildSevenDayInsight> }) {
+  return (
+    <View className="mx-4 mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900">
+      <Text className="font-semibold">Last 7 Days</Text>
+      <Text className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
+        {insight.entryCount}
+        {' '}
+        entries
+        {' '}
+        •
+        {' '}
+        Peak:
+        {' '}
+        {insight.busiestWindowLabel}
+      </Text>
+      <Text className="text-sm text-neutral-600 dark:text-neutral-300">
+        Moods:
+        {' '}
+        {insight.topMoods.join(' ') || 'No moods yet'}
+        {' '}
+        •
+        {' '}
+        {insight.trendLabel}
+      </Text>
+    </View>
+  );
+}
 
 function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
   const startMs = new Date(block.startTime).getTime();
@@ -214,9 +263,50 @@ function useCardMeasurements(blocks: TimelineBlock[]) {
   return { gradientHeight, cardBoundsById, handleMeasureCard, handleMeasureGradient };
 }
 
+function useSavedToast(savedFlag: string | undefined) {
+  const [showSavedToast, setShowSavedToast] = React.useState(savedFlag === '1');
+  const savedToastOpacity = React.useRef(new Animated.Value(savedFlag === '1' ? 1 : 0)).current;
+  const savedToastTranslateY = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    if (savedFlag !== '1') {
+      setShowSavedToast(false);
+      savedToastOpacity.setValue(0);
+      savedToastTranslateY.setValue(0);
+      return;
+    }
+
+    setShowSavedToast(true);
+    savedToastOpacity.setValue(1);
+    savedToastTranslateY.setValue(0);
+
+    const timeoutId = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(savedToastOpacity, {
+          toValue: 0,
+          duration: 350,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(savedToastTranslateY, {
+          toValue: -8,
+          duration: 350,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start(() => setShowSavedToast(false));
+    }, 8000);
+
+    return () => clearTimeout(timeoutId);
+  }, [savedFlag, savedToastOpacity, savedToastTranslateY]);
+
+  return { showSavedToast, savedToastOpacity, savedToastTranslateY };
+}
+
 export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineScreenProps = {}) {
-  const params = useLocalSearchParams<{ 'day-key': string }>();
+  const params = useLocalSearchParams<{ 'day-key': string; 'saved'?: string }>();
   const dayKey = dayKeyOverride ?? params['day-key'];
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const sliceScheme = colorScheme === 'dark' ? 'dark' : 'light';
   const parentGradientColors = React.useMemo(
@@ -224,6 +314,7 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
     [sliceScheme],
   );
   const entries = useJournalStore.use.entries();
+  const insight = React.useMemo(() => buildSevenDayInsight(entries), [entries]);
   const dayGroups = React.useMemo(() => groupEntriesByDay(entries), [entries]);
   const selectedGroup = dayGroups.find(group => group.dayKey === dayKey);
   const blocks = React.useMemo(
@@ -231,6 +322,7 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
     [selectedGroup?.entries],
   );
   const { gradientHeight, cardBoundsById, handleMeasureCard, handleMeasureGradient } = useCardMeasurements(blocks);
+  const { showSavedToast, savedToastOpacity, savedToastTranslateY } = useSavedToast(params.saved);
 
   const gradientSpec = React.useMemo(() => {
     return buildDurationWeightedGradientSpec({
@@ -244,14 +336,18 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
   return (
     <View className="flex-1 bg-white pt-14 dark:bg-black">
       <FocusAwareStatusBar />
+      {showSavedToast
+        ? (
+            <View className="absolute inset-x-0 top-14 z-20 px-4">
+              <SavedCheckInToast opacity={savedToastOpacity} translateY={savedToastTranslateY} />
+            </View>
+          )
+        : null}
       <View className="mb-3 gap-2 px-4">
         <Text className="text-xl font-bold">
           {selectedGroup ? formatReadableDate(selectedGroup.dayKey) : 'Day Timeline'}
         </Text>
         <View className="flex-row justify-end gap-2">
-          <Link href="/entry/new" asChild>
-            <Button label="New Entry" size="sm" fullWidth={false} />
-          </Link>
           <Link href="/all-entries" asChild>
             <Button label="All Entries" size="sm" variant="outline" fullWidth={false} />
           </Link>
@@ -283,7 +379,14 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
                 ))
               )}
         </LinearGradient>
+        <LastSevenDaysCard insight={insight} />
       </ScrollView>
+      <View className="px-4 pt-2 pb-4">
+        <Button
+          label="Add Entry"
+          onPress={() => router.push(`/entry/new?day-key=${dayKey}`)}
+        />
+      </View>
     </View>
   );
 }

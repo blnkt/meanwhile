@@ -4,6 +4,17 @@ import { Button, FocusAwareStatusBar, Pressable, ScrollView, Text, View } from '
 import { formatReadableDate, formatReadableTime, getTodayKey, groupEntriesByDay } from './journal-utils';
 import { useJournalStore } from './use-journal-store';
 
+const INTERSTITIAL_EMPTY_PROMPTS = [
+  'What did you just finish?',
+  'What are you about to do next?',
+  'How is your focus right now?',
+];
+
+function getStablePrompt(dayKey: string) {
+  const seed = dayKey.split('-').reduce((total, part) => total + Number.parseInt(part, 10), 0);
+  return INTERSTITIAL_EMPTY_PROMPTS[seed % INTERSTITIAL_EMPTY_PROMPTS.length];
+}
+
 function buildCollapsedSummary(entries: { moodEmoji: string | null; startTime: string; endTime: string }[]) {
   const entryCount = entries.length;
   const moodCountMap = new Map<string, number>();
@@ -36,6 +47,89 @@ function splitReadableDate(dayKey: string) {
   return { dayName, rest };
 }
 
+function EmptyStateCard({ prompt }: { prompt: string }) {
+  return (
+    <View className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+      <Text className="text-neutral-600 dark:text-neutral-300">
+        No entries yet. Create your first entry for today.
+      </Text>
+      <Text className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+        Try:
+        {' '}
+        {prompt}
+      </Text>
+    </View>
+  );
+}
+
+function DayGroupCard({
+  group,
+  isCollapsed,
+  onToggleCollapsed,
+  onOpenDay,
+}: {
+  group: ReturnType<typeof groupEntriesByDay>[number];
+  isCollapsed: boolean;
+  onToggleCollapsed: () => void;
+  onOpenDay: () => void;
+}) {
+  const collapsedSummary = buildCollapsedSummary(group.entries);
+  const { dayName, rest } = splitReadableDate(group.dayKey);
+  return (
+    <View
+      key={group.dayKey}
+      className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800"
+    >
+      <View className="mb-2 flex-row flex-wrap items-start justify-between gap-y-2">
+        <View className="min-w-0 flex-1 pr-2">
+          <Pressable onPress={onToggleCollapsed}>
+            <View className="flex-row items-start">
+              <Text className="w-5 font-semibold">{isCollapsed ? '▶' : '▼'}</Text>
+              <View className="min-w-0 flex-1">
+                <Text numberOfLines={1} className="font-semibold">
+                  {dayName}
+                </Text>
+                <Text numberOfLines={1} className="text-sm text-neutral-600 dark:text-neutral-300">
+                  {rest}
+                </Text>
+              </View>
+            </View>
+          </Pressable>
+        </View>
+        <Button
+          className="self-start"
+          label="Day View"
+          size="sm"
+          variant="outline"
+          fullWidth={false}
+          onPress={onOpenDay}
+        />
+      </View>
+      {!isCollapsed
+        ? (
+            group.entries.map(entry => (
+              <Link key={entry.id} href={`/entry/${entry.id}`} asChild>
+                <Pressable className="mb-2 rounded-lg bg-neutral-100 p-3 dark:bg-neutral-900">
+                  <Text className="font-medium">
+                    {entry.moodEmoji ? `${entry.moodEmoji} ` : ''}
+                    {formatReadableTime(entry.startTime)}
+                  </Text>
+                  <Text numberOfLines={2} className="mt-1 text-neutral-700 dark:text-neutral-300">
+                    {entry.text || '(No text)'}
+                  </Text>
+                </Pressable>
+              </Link>
+            ))
+          )
+        : (
+            <Text className="text-sm text-neutral-600 dark:text-neutral-300">
+              {collapsedSummary}
+            </Text>
+          )}
+    </View>
+  );
+}
+
 export function JournalTimelineScreen() {
   const router = useRouter();
   const entries = useJournalStore.use.entries();
@@ -45,15 +139,13 @@ export function JournalTimelineScreen() {
   const dayGroups = React.useMemo(() => groupEntriesByDay(entries), [entries]);
   const todayKey = getTodayKey();
   const hasTodayEntries = dayGroups.some(group => group.dayKey === todayKey);
+  const emptyPrompt = getStablePrompt(todayKey);
 
   return (
     <View className="flex-1 bg-white px-4 pt-14 dark:bg-black">
       <FocusAwareStatusBar />
-      <View className="mb-3 flex-row items-center justify-between">
+      <View className="mb-3">
         <Text className="text-2xl font-bold">All Entries</Text>
-        <Link href="/entry/new" asChild>
-          <Button label="New Entry" size="sm" fullWidth={false} />
-        </Link>
       </View>
 
       <Button
@@ -71,74 +163,25 @@ export function JournalTimelineScreen() {
 
       <ScrollView className="mt-2 flex-1">
         {dayGroups.length === 0
-          ? (
-              <View className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
-                <Text className="text-neutral-600 dark:text-neutral-300">
-                  No entries yet. Create your first entry for today.
-                </Text>
-              </View>
-            )
+          ? <EmptyStateCard prompt={emptyPrompt} />
           : (
               dayGroups.map((group) => {
                 const isCollapsed = collapsedDayKeys.includes(group.dayKey);
-                const collapsedSummary = buildCollapsedSummary(group.entries);
-                const { dayName, rest } = splitReadableDate(group.dayKey);
                 return (
-                  <View
+                  <DayGroupCard
                     key={group.dayKey}
-                    className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800"
-                  >
-                    <View className="mb-2 flex-row flex-wrap items-start justify-between gap-y-2">
-                      <View className="min-w-0 flex-1 pr-2">
-                        <Pressable onPress={() => toggleDayCollapsed(group.dayKey)}>
-                          <View className="flex-row items-start">
-                            <Text className="w-5 font-semibold">{isCollapsed ? '▶' : '▼'}</Text>
-                            <View className="min-w-0 flex-1">
-                              <Text numberOfLines={1} className="font-semibold">
-                                {dayName}
-                              </Text>
-                              <Text numberOfLines={1} className="text-sm text-neutral-600 dark:text-neutral-300">
-                                {rest}
-                              </Text>
-                            </View>
-                          </View>
-                        </Pressable>
-                      </View>
-                      <Button
-                        className="self-start"
-                        label="Day View"
-                        size="sm"
-                        variant="outline"
-                        fullWidth={false}
-                        onPress={() => router.push(`/day/${group.dayKey}`)}
-                      />
-                    </View>
-                    {!isCollapsed
-                      ? (
-                          group.entries.map(entry => (
-                            <Link key={entry.id} href={`/entry/${entry.id}`} asChild>
-                              <Pressable className="mb-2 rounded-lg bg-neutral-100 p-3 dark:bg-neutral-900">
-                                <Text className="font-medium">
-                                  {entry.moodEmoji ? `${entry.moodEmoji} ` : ''}
-                                  {formatReadableTime(entry.startTime)}
-                                </Text>
-                                <Text numberOfLines={2} className="mt-1 text-neutral-700 dark:text-neutral-300">
-                                  {entry.text || '(No text)'}
-                                </Text>
-                              </Pressable>
-                            </Link>
-                          ))
-                        )
-                      : (
-                          <Text className="text-sm text-neutral-600 dark:text-neutral-300">
-                            {collapsedSummary}
-                          </Text>
-                        )}
-                  </View>
+                    group={group}
+                    isCollapsed={isCollapsed}
+                    onToggleCollapsed={() => toggleDayCollapsed(group.dayKey)}
+                    onOpenDay={() => router.push(`/day/${group.dayKey}`)}
+                  />
                 );
               })
             )}
       </ScrollView>
+      <View className="pt-2 pb-4">
+        <Button label="Add Entry" onPress={() => router.push('/entry/new')} />
+      </View>
     </View>
   );
 }

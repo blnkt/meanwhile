@@ -120,6 +120,86 @@ export function buildDayTimelineBlocks(entries: JournalEntry[]): TimelineBlock[]
   });
 }
 
+export type SevenDayInsight = {
+  busiestWindowLabel: string;
+  entryCount: number;
+  topMoods: string[];
+  trendLabel: string;
+};
+
+function getDayStart(input: Date) {
+  const result = new Date(input);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
+
+function getDayEnd(input: Date) {
+  const result = new Date(input);
+  result.setHours(23, 59, 59, 999);
+  return result;
+}
+
+function getWindowLabel(hour: number) {
+  if (hour < 6) {
+    return 'Night';
+  }
+  if (hour < 12) {
+    return 'Morning';
+  }
+  if (hour < 18) {
+    return 'Afternoon';
+  }
+  return 'Evening';
+}
+
+export function buildSevenDayInsight(entries: JournalEntry[]): SevenDayInsight {
+  const now = new Date();
+  const currentPeriodStart = getDayStart(new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000));
+  const previousPeriodStart = getDayStart(new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000));
+  const previousPeriodEnd = getDayEnd(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+  const currentPeriodEntries = entries.filter((entry) => {
+    const timestamp = new Date(entry.startTime).getTime();
+    return timestamp >= currentPeriodStart.getTime() && timestamp <= now.getTime();
+  });
+  const previousPeriodEntries = entries.filter((entry) => {
+    const timestamp = new Date(entry.startTime).getTime();
+    return timestamp >= previousPeriodStart.getTime() && timestamp <= previousPeriodEnd.getTime();
+  });
+
+  const moodCountMap = new Map<string, number>();
+  const windowCountMap = new Map<string, number>();
+  for (const entry of currentPeriodEntries) {
+    if (entry.moodEmoji) {
+      moodCountMap.set(entry.moodEmoji, (moodCountMap.get(entry.moodEmoji) ?? 0) + 1);
+    }
+    const hour = new Date(entry.startTime).getHours();
+    const windowLabel = getWindowLabel(hour);
+    windowCountMap.set(windowLabel, (windowCountMap.get(windowLabel) ?? 0) + 1);
+  }
+  const topMoods = [...moodCountMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([mood]) => mood);
+  const busiestWindowLabel = [...windowCountMap.entries()]
+    .sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'No peak yet';
+  const currentCount = currentPeriodEntries.length;
+  const previousCount = previousPeriodEntries.length;
+  let trendLabel = 'Steady vs previous week';
+  if (currentCount > previousCount) {
+    trendLabel = `Up ${currentCount - previousCount} vs previous week`;
+  }
+  else if (currentCount < previousCount) {
+    trendLabel = `Down ${previousCount - currentCount} vs previous week`;
+  }
+
+  return {
+    entryCount: currentCount,
+    topMoods,
+    busiestWindowLabel,
+    trendLabel,
+  };
+}
+
 const DAY_SLICE_GRADIENT = {
   light: { from: '#eef2f7', to: '#f6ebe3' },
   dark: { from: '#12161e', to: '#231f18' },
