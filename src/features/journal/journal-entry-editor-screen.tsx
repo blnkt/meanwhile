@@ -19,6 +19,7 @@ import {
   formatReadableTime,
   getNextEntryStart,
   parseDateTimeInput,
+  toDayKey,
 } from './journal-utils';
 import { useJournalStore } from './use-journal-store';
 
@@ -403,6 +404,14 @@ function useSaveEntry({
   const updateEntry = useJournalStore.use.updateEntry();
 
   return React.useCallback(() => {
+    const trimmedText = draft.text.trim();
+    const hasMood = Boolean(draft.moodEmoji);
+    const hasText = trimmedText.length > 0;
+    if (!hasMood && !hasText) {
+      setValidationMessage('Add a mood or some text before saving.');
+      return;
+    }
+
     const start = parseDateTimeInput(draft.startValue);
     if (!start) {
       setValidationMessage('Please choose a valid start time.');
@@ -428,7 +437,7 @@ function useSaveEntry({
     if (editingEntry) {
       updateEntry(editingEntry.id, {
         moodEmoji: draft.moodEmoji,
-        text: draft.text,
+        text: trimmedText,
         startTime: start,
         endTime: end,
       });
@@ -436,12 +445,12 @@ function useSaveEntry({
     else {
       createEntry({
         moodEmoji: draft.moodEmoji,
-        text: draft.text,
+        text: trimmedText,
         startTime: start,
         endTime: end,
       });
     }
-    router.replace('/');
+    router.replace(`/day/${toDayKey(start)}`);
   }, [createEntry, draft.endValue, draft.moodEmoji, draft.startValue, draft.text, editingEntry, entries, router, setValidationMessage, showCustomEndTime, updateEntry]);
 }
 
