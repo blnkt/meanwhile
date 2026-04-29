@@ -2,7 +2,7 @@ import type { LoginFormProps } from './login-form';
 
 import * as React from 'react';
 
-import { cleanup, screen, setup, waitFor } from '@/lib/test-utils';
+import { act, cleanup, screen, setup, waitFor } from '@/lib/test-utils';
 import { LoginForm } from './login-form';
 
 afterEach(cleanup);
@@ -33,7 +33,9 @@ describe('loginForm Form ', () => {
     const passwordInput = screen.getByTestId('password-input');
 
     await user.type(emailInput, 'yyyyy');
-    emailInput.props.onBlur(); // Manually trigger blur to set touched state
+    await act(async () => {
+      emailInput.props.onBlur(); // Manually trigger blur to set touched state
+    });
     await user.type(passwordInput, 'test');
     await user.press(button);
 

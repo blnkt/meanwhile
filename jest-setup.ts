@@ -95,6 +95,20 @@ jest.mock('react-native-mmkv', () => ({
   })),
 }));
 
+// Disable TanStack devtools event-loop timers in tests
+jest.mock('@tanstack/devtools-event-client', () => ({
+  EventClient: class {
+    createEventPayload(eventSuffix: string, payload: unknown) {
+      return { type: eventSuffix, payload };
+    }
+
+    emit() {}
+    on() {
+      return () => {};
+    }
+  },
+}));
+
 // Global window object setup for React Native testing
 // @ts-expect-error
 global.window = {};
