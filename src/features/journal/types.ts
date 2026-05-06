@@ -2,8 +2,6 @@ export type JournalEntry = {
   id: string;
   createdAt: string;
   startTime: string;
-  endTime: string;
-  isEndTimeManual: boolean;
   moodEmoji: string | null;
   text: string;
   updatedAt: string;

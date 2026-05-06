@@ -9,7 +9,7 @@ jest.mock('@/lib/storage', () => ({
   setItem: jest.fn(),
 }));
 
-describe('useJournalStore dynamic end-time recalculation', () => {
+describe('useJournalStore', () => {
   beforeEach(() => {
     useJournalStore.setState({
       entries: [],
@@ -18,7 +18,7 @@ describe('useJournalStore dynamic end-time recalculation', () => {
     });
   });
 
-  it('recomputes implicit previous end times when start times change', () => {
+  it('keeps entries sorted by start time when start times change', () => {
     const firstId = useJournalStore.getState().createEntry({
       text: 'first',
       startTime: '2026-04-29T09:00:00.000Z',
@@ -26,8 +26,6 @@ describe('useJournalStore dynamic end-time recalculation', () => {
     const secondId = useJournalStore.getState().createEntry({
       text: 'second',
       startTime: '2026-04-29T10:00:00.000Z',
-      endTime: '2026-04-29T10:45:00.000Z',
-      isEndTimeManual: true,
     });
     const thirdId = useJournalStore.getState().createEntry({
       text: 'third',
@@ -39,11 +37,6 @@ describe('useJournalStore dynamic end-time recalculation', () => {
     });
 
     const entries = useJournalStore.getState().entries;
-    const byId = Object.fromEntries(entries.map(entry => [entry.id, entry]));
-
-    expect(byId[firstId].endTime).toBe('2026-04-29T10:30:00.000Z');
-    expect(byId[secondId].endTime).toBe('2026-04-29T10:45:00.000Z');
-    expect(byId[secondId].isEndTimeManual).toBe(true);
-    expect(byId[thirdId].endTime).toBe('2026-04-29T11:30:00.000Z');
+    expect(entries.map(entry => entry.id)).toEqual([thirdId, secondId, firstId]);
   });
 });

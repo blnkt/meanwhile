@@ -9,7 +9,7 @@ import {
 } from '@/lib/icloud-sync';
 import { getItem, setItem } from '@/lib/storage';
 import { createSelectors } from '@/lib/utils';
-import { getNextEntryStart, sortEntriesByStartDesc } from './journal-utils';
+import { sortEntriesByStartDesc } from './journal-utils';
 
 const JOURNAL_STORAGE_KEY = 'journal-store-v1';
 const JOURNAL_CLOUD_STORAGE_KEY = 'journal-store-v1-cloud';
@@ -22,10 +22,8 @@ type JournalStoreState = {
     moodEmoji?: string | null;
     text: string;
     startTime?: string;
-    endTime?: string;
-    isEndTimeManual?: boolean;
   }) => string;
-  updateEntry: (id: string, input: Partial<Pick<JournalEntry, 'moodEmoji' | 'text' | 'startTime' | 'endTime' | 'isEndTimeManual'>>) => void;
+  updateEntry: (id: string, input: Partial<Pick<JournalEntry, 'moodEmoji' | 'text' | 'startTime'>>) => void;
   toggleDayCollapsed: (dayKey: string) => void;
   hydrate: () => void;
 };
@@ -64,22 +62,6 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function recomputeImplicitEndTimes(entries: JournalEntry[]) {
-  const ascending = [...entries].sort(
-    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-  );
-  const recomputed = ascending.map((entry) => {
-    if (entry.isEndTimeManual) {
-      return entry;
-    }
-    return {
-      ...entry,
-      endTime: getNextEntryStart(ascending, entry.startTime, { excludeEntryId: entry.id }),
-    };
-  });
-  return sortEntriesByStartDesc(recomputed);
-}
-
 const _useJournalStore = create<JournalStoreState>((set, get) => ({
   entries: [],
   collapsedDayKeys: [],
@@ -87,10 +69,6 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
   createEntry: (input) => {
     const now = new Date().toISOString();
     const startTime = input.startTime ?? now;
-    const isEndTimeManual = Boolean(input.isEndTimeManual);
-    const endTime = isEndTimeManual
-      ? (input.endTime ?? getNextEntryStart(get().entries, startTime))
-      : getNextEntryStart(get().entries, startTime);
     const entry: JournalEntry = {
       id: makeId(),
       createdAt: now,
@@ -98,18 +76,16 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
       moodEmoji: input.moodEmoji ?? null,
       text: input.text,
       startTime,
-      endTime,
-      isEndTimeManual,
     };
 
-    const entries = recomputeImplicitEndTimes([...get().entries, entry]);
+    const entries = sortEntriesByStartDesc([...get().entries, entry]);
     set({ entries });
     persistState({ entries, collapsedDayKeys: get().collapsedDayKeys });
     return entry.id;
   },
   updateEntry: (id, input) => {
     const now = new Date().toISOString();
-    const entries = recomputeImplicitEndTimes(
+    const entries = sortEntriesByStartDesc(
       get().entries.map(entry =>
         entry.id === id
           ? {
@@ -142,11 +118,7 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
     };
     void pullFromCloudIfNewer(localState)
       .then((selectedState) => {
-        const normalizedEntries = (selectedState.entries ?? []).map(entry => ({
-          ...entry,
-          isEndTimeManual: entry.isEndTimeManual ?? false,
-        }));
-        const entries = recomputeImplicitEndTimes(normalizedEntries);
+        const entries = sortEntriesByStartDesc(selectedState.entries ?? []);
         const collapsedDayKeys = selectedState.collapsedDayKeys ?? [];
         set({
           entries,

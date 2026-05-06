@@ -84,7 +84,7 @@ function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
     <View className="mb-3" onLayout={event => onMeasure(block.entryId, event)}>
       <Link href={`/entry/${block.entryId}`} asChild>
         <Pressable className="overflow-hidden rounded-xl border border-neutral-200/90 dark:border-neutral-700/90">
-          <View className="bg-white/70 p-3 dark:bg-black/40">
+          <View className="bg-white/75 p-3 dark:bg-black/45">
             <Text className="font-semibold text-neutral-900 dark:text-neutral-50">
               {block.moodEmoji ? `${block.moodEmoji} ` : ''}
               {formatReadableTime(block.startTime)}
@@ -93,10 +93,12 @@ function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
               {' '}
               {formatReadableTime(block.endTime)}
             </Text>
-            <Text className="text-sm text-neutral-600 dark:text-neutral-400">
+            <Text className="mt-1 text-xs tracking-wide text-neutral-500 uppercase dark:text-neutral-400">
               {durationLabel}
             </Text>
-            <Text className="mt-2 text-neutral-800 dark:text-neutral-100">{block.text || translate('journal.no_text')}</Text>
+            <Text numberOfLines={4} className="mt-2 text-neutral-800 dark:text-neutral-100">
+              {block.text || translate('journal.no_text')}
+            </Text>
           </View>
         </Pressable>
       </Link>

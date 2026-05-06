@@ -41,7 +41,6 @@ jest.mock('./use-journal-store', () => ({
 function entry(input: {
   id: string;
   startTime: string;
-  endTime: string;
   text: string;
 }): JournalEntry {
   return {
@@ -49,8 +48,6 @@ function entry(input: {
     createdAt: input.startTime,
     updatedAt: input.startTime,
     startTime: input.startTime,
-    endTime: input.endTime,
-    isEndTimeManual: true,
     moodEmoji: null,
     text: input.text,
   };
@@ -62,20 +59,17 @@ describe('journalDayTimelineScreen duration labels', () => {
       entry({
         id: 'a',
         startTime: '2026-04-29T09:00:00.000Z',
-        endTime: '2026-04-29T09:45:00.000Z',
         text: 'forty-five',
       }),
       entry({
         id: 'b',
-        startTime: '2026-04-29T10:00:00.000Z',
-        endTime: '2026-04-29T11:00:00.000Z',
+        startTime: '2026-04-29T09:45:00.000Z',
         text: 'one hour',
       }),
       entry({
         id: 'c',
-        startTime: '2026-04-29T12:00:00.000Z',
-        endTime: '2026-04-29T13:20:00.000Z',
-        text: 'mixed',
+        startTime: '2026-04-29T10:45:00.000Z',
+        text: 'half hour',
       }),
     ]);
 
@@ -83,6 +77,6 @@ describe('journalDayTimelineScreen duration labels', () => {
 
     expect(screen.getByText('45m')).toBeOnTheScreen();
     expect(screen.getByText('1h')).toBeOnTheScreen();
-    expect(screen.getByText('1h 20m')).toBeOnTheScreen();
+    expect(screen.getByText('30m')).toBeOnTheScreen();
   });
 });

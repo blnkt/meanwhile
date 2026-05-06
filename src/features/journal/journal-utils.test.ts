@@ -17,8 +17,6 @@ function makeEntry(partial: Partial<JournalEntry> & Pick<JournalEntry, 'id' | 's
     createdAt: partial.createdAt ?? startTime,
     updatedAt: partial.updatedAt ?? startTime,
     startTime,
-    endTime: partial.endTime ?? endOfDay(startTime),
-    isEndTimeManual: partial.isEndTimeManual ?? false,
     moodEmoji: partial.moodEmoji ?? null,
     text: partial.text ?? '',
   };
@@ -55,24 +53,13 @@ describe('journal-utils', () => {
     expect(getNextEntryStart(excludedEntries, '2026-04-29T10:30:00.000Z', { excludeEntryId: 'b' })).toBe('2026-04-29T12:00:00.000Z');
 
     const fallbackBlockEntries = [
-      makeEntry({ id: 'a', startTime: '2026-04-29T09:00:00.000Z', endTime: '' }),
-      makeEntry({ id: 'b', startTime: '2026-04-29T10:00:00.000Z', endTime: '' }),
+      makeEntry({ id: 'a', startTime: '2026-04-29T09:00:00.000Z' }),
+      makeEntry({ id: 'b', startTime: '2026-04-29T10:00:00.000Z' }),
     ];
     const fallbackBlocks = buildDayTimelineBlocks(fallbackBlockEntries);
     expect(fallbackBlocks[0].startTime).toBe('2026-04-29T09:00:00.000Z');
     expect(fallbackBlocks[0].endTime).toBe('2026-04-29T10:00:00.000Z');
     expect(fallbackBlocks[1].endTime).toBe(addMinutesCappedToEndOfDay('2026-04-29T10:00:00.000Z', 30));
-
-    const overriddenBlockEntries = [
-      makeEntry({
-        id: 'a',
-        startTime: '2026-04-29T09:00:00.000Z',
-        endTime: '2026-04-29T11:15:00.000Z',
-      }),
-      makeEntry({ id: 'b', startTime: '2026-04-29T10:00:00.000Z' }),
-    ];
-    const overriddenBlocks = buildDayTimelineBlocks(overriddenBlockEntries);
-    expect(overriddenBlocks[0].endTime).toBe('2026-04-29T11:15:00.000Z');
   }
 
   it('covers critical grouping and timeline derivation behaviors', () => {

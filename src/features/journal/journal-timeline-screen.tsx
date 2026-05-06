@@ -16,7 +16,7 @@ function getStablePrompt(dayKey: string) {
   return INTERSTITIAL_EMPTY_PROMPT_KEYS[seed % INTERSTITIAL_EMPTY_PROMPT_KEYS.length];
 }
 
-function buildCollapsedSummary(entries: { moodEmoji: string | null; startTime: string; endTime: string }[]) {
+function buildCollapsedSummary(entries: { moodEmoji: string | null; startTime: string }[]) {
   const entryCount = entries.length;
   const moodCountMap = new Map<string, number>();
   for (const entry of entries) {
@@ -33,15 +33,14 @@ function buildCollapsedSummary(entries: { moodEmoji: string | null; startTime: s
   const moodSummary = topMoods || translate('journal.no_moods_logged');
 
   const startTimes = entries.map(entry => new Date(entry.startTime).getTime());
-  const endTimes = entries.map(entry => new Date(entry.endTime).getTime());
   const earliestStart = new Date(Math.min(...startTimes)).toISOString();
-  const latestEnd = new Date(Math.max(...endTimes)).toISOString();
+  const latestStart = new Date(Math.max(...startTimes)).toISOString();
 
   return translate('journal.timeline.collapsed_summary', {
     count: entryCount,
     moods: moodSummary,
     start: formatReadableTime(earliestStart),
-    end: formatReadableTime(latestEnd),
+    end: formatReadableTime(latestStart),
   });
 }
 

@@ -108,7 +108,7 @@ export function buildDayTimelineBlocks(entries: JournalEntry[]): TimelineBlock[]
     return {
       entryId: entry.id,
       startTime: entry.startTime,
-      endTime: entry.endTime || computedEnd,
+      endTime: computedEnd,
       moodEmoji: entry.moodEmoji,
       text: entry.text,
     };

@@ -73,7 +73,7 @@ describe('journal entry editor', () => {
   it('blocks save when both mood and text are empty', async () => {
     const { user } = setup(<JournalEntryEditorScreen />);
 
-    await user.press(screen.getByText('Create Entry'));
+    await user.press(screen.getByText('Save Check-in'));
 
     expect(await screen.findByText('Add a mood or some text before saving.')).toBeOnTheScreen();
     expect(mockCreateEntry).not.toHaveBeenCalled();
@@ -87,7 +87,7 @@ describe('journal entry editor', () => {
       screen.getByPlaceholderText(/What did you just finish\?|What is your next first step\?|How is your energy right now\?/),
       'Finished standup and planning.',
     );
-    await user.press(screen.getByText('Create Entry'));
+    await user.press(screen.getByText('Save Check-in'));
 
     expect(mockCreateEntry).toHaveBeenCalledTimes(1);
     expect(mockCreateEntry).toHaveBeenCalledWith(
