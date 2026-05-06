@@ -6,11 +6,21 @@ import { JournalDayTimelineScreen } from './journal-day-timeline-screen';
 
 const mockEntriesSelector = jest.fn<JournalEntry[], []>(() => []);
 
-jest.mock('expo-router', () => ({
-  Link: ({ children }: { children: React.ReactNode }) => children,
-  useLocalSearchParams: () => ({ 'day-key': '2026-04-29' }),
-  useRouter: () => ({ push: jest.fn() }),
-}));
+/* eslint-disable react/no-unnecessary-use-prefix -- mock must expose expo-router hook names */
+jest.mock('expo-router', () => {
+  const readSearchParams = jest.fn(() => ({ 'day-key': '2026-04-29' as const }));
+  return {
+    Link: ({ children }: { children: React.ReactNode }) => children,
+    useLocalSearchParams: readSearchParams,
+    useRouter: () => ({ push: jest.fn() }),
+    readSearchParams,
+  };
+});
+/* eslint-enable react/no-unnecessary-use-prefix */
+
+const expoRouterMock = jest.requireMock('expo-router') as {
+  readSearchParams: jest.Mock;
+};
 
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children }: { children: React.ReactNode }) => children,
@@ -53,6 +63,10 @@ function entry(input: {
   };
 }
 
+beforeEach(() => {
+  expoRouterMock.readSearchParams.mockReturnValue({ 'day-key': '2026-04-29' });
+});
+
 describe('journalDayTimelineScreen entry cards', () => {
   it('shows entry body text but not duration labels', () => {
     mockEntriesSelector.mockReturnValue([
@@ -81,5 +95,34 @@ describe('journalDayTimelineScreen entry cards', () => {
     expect(screen.queryByText('45m')).toBeNull();
     expect(screen.queryByText('1h')).toBeNull();
     expect(screen.queryByText('30m')).toBeNull();
+  });
+
+  it('shows the no-text placeholder when the entry body is empty', () => {
+    mockEntriesSelector.mockReturnValue([
+      entry({
+        id: 'empty',
+        startTime: '2026-04-29T09:00:00.000Z',
+        text: '',
+      }),
+    ]);
+
+    setup(<JournalDayTimelineScreen />);
+
+    expect(screen.getByText('(No text)')).toBeOnTheScreen();
+  });
+
+  it('shows the saved toast when the route includes saved=1', () => {
+    mockEntriesSelector.mockReturnValue([
+      entry({
+        id: 'a',
+        startTime: '2026-04-29T09:00:00.000Z',
+        text: 'note',
+      }),
+    ]);
+    expoRouterMock.readSearchParams.mockReturnValue({ 'day-key': '2026-04-29', 'saved': '1' });
+
+    setup(<JournalDayTimelineScreen />);
+
+    expect(screen.getByText('Saved. Nice check-in.')).toBeOnTheScreen();
   });
 });
