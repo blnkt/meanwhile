@@ -6,13 +6,21 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { render, userEvent } from '@testing-library/react-native';
 import * as React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '@shopify/flash-list/jestSetup';
+
+const SAFE_AREA_TEST_METRICS = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 function createAppWrapper() {
   return ({ children }: { children: React.ReactNode }) => (
-    <BottomSheetModalProvider>
-      <NavigationContainer>{children}</NavigationContainer>
-    </BottomSheetModalProvider>
+    <SafeAreaProvider initialMetrics={SAFE_AREA_TEST_METRICS}>
+      <BottomSheetModalProvider>
+        <NavigationContainer>{children}</NavigationContainer>
+      </BottomSheetModalProvider>
+    </SafeAreaProvider>
   );
 }
 

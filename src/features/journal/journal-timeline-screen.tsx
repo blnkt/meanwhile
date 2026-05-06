@@ -1,6 +1,6 @@
 import { Link, useRouter } from 'expo-router';
 import * as React from 'react';
-import { Button, FocusAwareStatusBar, Pressable, ScrollView, Text, View } from '@/components/ui';
+import { Button, FocusAwareStatusBar, Pressable, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
 import { translate } from '@/lib/i18n';
 import { formatReadableDate, formatReadableTime, getTodayKey, groupEntriesByDay } from './journal-utils';
 import { useJournalStore } from './use-journal-store';
@@ -116,8 +116,8 @@ function DayGroupCard({
               <Link key={entry.id} href={`/entry/${entry.id}`} asChild>
                 <Pressable className="mb-2 rounded-lg bg-neutral-100 p-3 dark:bg-neutral-900">
                   <Text className="font-medium">
-                    {entry.moodEmoji ? `${entry.moodEmoji} ` : ''}
                     {formatReadableTime(entry.startTime)}
+                    {entry.moodEmoji ? ` ${entry.moodEmoji}` : ''}
                   </Text>
                   <Text numberOfLines={2} className="mt-1 text-neutral-700 dark:text-neutral-300">
                     {entry.text || translate('journal.no_text')}
@@ -147,46 +147,57 @@ export function JournalTimelineScreen() {
   const emptyPrompt = translate(getStablePrompt(todayKey));
 
   return (
-    <View className="flex-1 bg-white px-4 pt-14 dark:bg-black">
+    <SafeAreaView className="flex-1 bg-white dark:bg-black" edges={['top']}>
       <FocusAwareStatusBar />
-      <View className="mb-3">
-        <Text className="text-2xl font-bold">{translate('journal.all_entries')}</Text>
-      </View>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="pb-2"
+        stickyHeaderIndices={[1]}
+      >
+        <View className="px-4 pt-4 pb-2">
+          <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
+            {translate('journal.all_entries')}
+          </Text>
+        </View>
 
-      <Button
-        label={hasTodayEntries ? translate('journal.today_cta') : translate('journal.start_today')}
-        variant="outline"
-        size="sm"
-        onPress={() => {
-          if (hasTodayEntries) {
-            router.push(`/day/${todayKey}`);
-            return;
-          }
-          router.push('/entry/new');
-        }}
-      />
+        <View className="flex-row justify-end border-b border-neutral-200 bg-white px-4 py-2 dark:border-neutral-800 dark:bg-black">
+          <Button
+            label={hasTodayEntries ? translate('journal.today_cta') : translate('journal.start_today')}
+            variant="outline"
+            size="sm"
+            fullWidth={false}
+            onPress={() => {
+              if (hasTodayEntries) {
+                router.push(`/day/${todayKey}`);
+                return;
+              }
+              router.push('/entry/new');
+            }}
+          />
+        </View>
 
-      <ScrollView className="mt-2 flex-1">
-        {dayGroups.length === 0
-          ? <EmptyStateCard prompt={emptyPrompt} />
-          : (
-              dayGroups.map((group) => {
-                const isCollapsed = collapsedDayKeys.includes(group.dayKey);
-                return (
-                  <DayGroupCard
-                    key={group.dayKey}
-                    group={group}
-                    isCollapsed={isCollapsed}
-                    onToggleCollapsed={() => toggleDayCollapsed(group.dayKey)}
-                    onOpenDay={() => router.push(`/day/${group.dayKey}`)}
-                  />
-                );
-              })
-            )}
+        <View className="mt-1 px-4">
+          {dayGroups.length === 0
+            ? <EmptyStateCard prompt={emptyPrompt} />
+            : (
+                dayGroups.map((group) => {
+                  const isCollapsed = collapsedDayKeys.includes(group.dayKey);
+                  return (
+                    <DayGroupCard
+                      key={group.dayKey}
+                      group={group}
+                      isCollapsed={isCollapsed}
+                      onToggleCollapsed={() => toggleDayCollapsed(group.dayKey)}
+                      onOpenDay={() => router.push(`/day/${group.dayKey}`)}
+                    />
+                  );
+                })
+              )}
+        </View>
       </ScrollView>
-      <View className="pt-2 pb-4">
+      <View className="px-4 pt-2 pb-4">
         <Button label={translate('journal.add_entry')} onPress={() => router.push('/entry/new')} />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

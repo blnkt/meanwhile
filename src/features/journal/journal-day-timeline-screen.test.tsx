@@ -34,6 +34,8 @@ jest.mock('@/components/ui', () => {
       ReactModule.createElement(RN.Text, null, label ?? 'Button'),
     FocusAwareStatusBar: () => null,
     Pressable: RN.Pressable,
+    SafeAreaView: ({ children }: { children?: React.ReactNode }) =>
+      ReactModule.createElement(RN.View, null, children),
     ScrollView: RN.ScrollView,
     Text: RN.Text,
     View: RN.View,

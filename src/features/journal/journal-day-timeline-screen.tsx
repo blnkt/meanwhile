@@ -7,7 +7,8 @@ import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
 
 import { Animated, Easing, useColorScheme } from 'react-native';
-import { Button, FocusAwareStatusBar, Pressable, ScrollView, Text, View } from '@/components/ui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Button, FocusAwareStatusBar, Pressable, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
 import {
   buildDurationWeightedGradientSpec,
   getParentGradientColors,
@@ -80,8 +81,8 @@ function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
         <Pressable className="overflow-hidden rounded-xl border border-neutral-200/90 dark:border-neutral-700/90">
           <View className="bg-white/75 p-3 dark:bg-black/45">
             <Text className="font-semibold text-neutral-900 dark:text-neutral-50">
-              {block.moodEmoji ? `${block.moodEmoji} ` : ''}
               {formatReadableTime(block.startTime)}
+              {block.moodEmoji ? ` ${block.moodEmoji}` : ''}
             </Text>
             <Text numberOfLines={4} className="mt-2 text-neutral-800 dark:text-neutral-100">
               {block.text || translate('journal.no_text')}
@@ -173,10 +174,29 @@ function useSavedToast(savedFlag: string | undefined) {
   return { showSavedToast, savedToastOpacity, savedToastTranslateY };
 }
 
+function DayScreenTitle({ title }: { title: string }) {
+  return (
+    <View className="px-4 pt-4 pb-2">
+      <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">{title}</Text>
+    </View>
+  );
+}
+
+function DayHeaderActions() {
+  return (
+    <View className="flex-row justify-end border-b border-neutral-200 bg-white px-4 py-2 dark:border-neutral-800 dark:bg-black">
+      <Link href="/all-entries" asChild>
+        <Button label={translate('journal.all_entries')} size="sm" variant="outline" fullWidth={false} />
+      </Link>
+    </View>
+  );
+}
+
 export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineScreenProps = {}) {
   const params = useLocalSearchParams<{ 'day-key': string; 'saved'?: string }>();
   const dayKey = dayKeyOverride ?? params['day-key'];
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const sliceScheme = colorScheme === 'dark' ? 'dark' : 'light';
   const parentGradientColors = React.useMemo(
@@ -194,6 +214,10 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
   const { gradientHeight, cardBoundsById, handleMeasureCard, handleMeasureGradient } = useCardMeasurements(blocks);
   const { showSavedToast, savedToastOpacity, savedToastTranslateY } = useSavedToast(params.saved);
 
+  const dayTitle = selectedGroup
+    ? formatReadableDate(selectedGroup.dayKey)
+    : translate('journal.day_timeline');
+
   const gradientSpec = React.useMemo(() => {
     return buildDurationWeightedGradientSpec({
       blocks,
@@ -204,59 +228,62 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
   }, [blocks, cardBoundsById, gradientHeight, parentGradientColors]);
 
   return (
-    <View className="flex-1 bg-white pt-14 dark:bg-black">
+    <SafeAreaView className="flex-1 bg-white dark:bg-black" edges={['top']}>
       <FocusAwareStatusBar />
       {showSavedToast
         ? (
-            <View className="absolute inset-x-0 top-14 z-20 px-4">
+            <View
+              className="absolute inset-x-0 z-20 px-4"
+              style={{ top: insets.top + 8 }}
+            >
               <SavedCheckInToast opacity={savedToastOpacity} translateY={savedToastTranslateY} />
             </View>
           )
         : null}
-      <View className="mb-3 gap-2 px-4">
-        <Text className="text-xl font-bold">
-          {selectedGroup ? formatReadableDate(selectedGroup.dayKey) : translate('journal.day_timeline')}
-        </Text>
-        <View className="flex-row justify-end gap-2">
-          <Link href="/all-entries" asChild>
-            <Button label={translate('journal.all_entries')} size="sm" variant="outline" fullWidth={false} />
-          </Link>
-        </View>
-      </View>
 
-      <ScrollView className="flex-1">
-        <LinearGradient
-          colors={gradientSpec?.colors ?? parentGradientColors}
-          end={{ x: 0, y: 1 }}
-          locations={gradientSpec?.locations}
-          onLayout={handleMeasureGradient}
-          start={{ x: 0, y: 0 }}
-          style={{ borderRadius: 12, padding: 12 }}
-        >
-          {!selectedGroup
-            ? (
-                <View className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
-                  <Text>{translate('journal.day_not_found')}</Text>
-                </View>
-              )
-            : (
-                blocks.map(block => (
-                  <DayEntryCard
-                    key={block.entryId}
-                    block={block}
-                    onMeasure={handleMeasureCard}
-                  />
-                ))
-              )}
-        </LinearGradient>
-        <LastSevenDaysCard insight={insight} />
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="pb-2"
+        stickyHeaderIndices={[1]}
+      >
+        <DayScreenTitle title={dayTitle} />
+        <DayHeaderActions />
+
+        <View>
+          <LinearGradient
+            colors={gradientSpec?.colors ?? parentGradientColors}
+            end={{ x: 0, y: 1 }}
+            locations={gradientSpec?.locations}
+            onLayout={handleMeasureGradient}
+            start={{ x: 0, y: 0 }}
+            style={{ borderRadius: 12, marginHorizontal: 16, padding: 12 }}
+          >
+            {!selectedGroup
+              ? (
+                  <View className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+                    <Text>{translate('journal.day_not_found')}</Text>
+                  </View>
+                )
+              : (
+                  blocks.map(block => (
+                    <DayEntryCard
+                      key={block.entryId}
+                      block={block}
+                      onMeasure={handleMeasureCard}
+                    />
+                  ))
+                )}
+          </LinearGradient>
+          <LastSevenDaysCard insight={insight} />
+        </View>
       </ScrollView>
+
       <View className="px-4 pt-2 pb-4">
         <Button
           label={translate('journal.add_entry')}
           onPress={() => router.push(`/entry/new?day-key=${dayKey}`)}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
