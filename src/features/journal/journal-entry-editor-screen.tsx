@@ -78,8 +78,10 @@ function MoodPicker({
             <Button
               key={option}
               label={option}
-              size="sm"
+              size="lg"
               fullWidth={false}
+              className="min-h-[52px] min-w-[52px] shrink-0 px-3"
+              textClassName="text-3xl leading-none"
               variant={selectedMood === option ? 'default' : 'outline'}
               onPress={() => onSelect(selectedMood === option ? null : option)}
             />
@@ -149,7 +151,6 @@ type EntryFormProps = {
   validationMessage: string | null;
   setDraft: React.Dispatch<React.SetStateAction<EntryDraft>>;
   onSave: () => void;
-  onSaveAndAddAnother: () => void;
   onBack: () => void;
 };
 
@@ -233,7 +234,6 @@ function EntryForm({
   validationMessage,
   setDraft,
   onSave,
-  onSaveAndAddAnother,
   onBack,
 }: EntryFormProps) {
   const [activePicker, setActivePicker] = React.useState<'start' | null>(null);
@@ -304,15 +304,10 @@ function EntryForm({
             )
           : null}
 
-        <View className="mt-5 mb-8 gap-2">
+        <View className="mt-5 mb-8">
           <Button
             label={editingEntry ? translate('journal.save_changes') : translate('journal.create_entry')}
             onPress={onSave}
-          />
-          <Button
-            label={translate('journal.save_and_add_another')}
-            variant="outline"
-            onPress={onSaveAndAddAnother}
           />
         </View>
       </ScrollView>
@@ -323,17 +318,19 @@ function EntryForm({
 function useSaveEntry({
   editingEntry,
   draft,
+  setDraft,
   setValidationMessage,
 }: {
   editingEntry: JournalEntry | undefined;
   draft: EntryDraft;
+  setDraft: React.Dispatch<React.SetStateAction<EntryDraft>>;
   setValidationMessage: React.Dispatch<React.SetStateAction<string | null>>;
 }) {
   const router = useRouter();
   const createEntry = useJournalStore.use.createEntry();
   const updateEntry = useJournalStore.use.updateEntry();
 
-  return React.useCallback((mode: 'save' | 'save-and-add-another' = 'save') => {
+  return React.useCallback(() => {
     const trimmedText = draft.text.trim();
     const hasMood = Boolean(draft.moodEmoji);
     const hasText = trimmedText.length > 0;
@@ -364,12 +361,11 @@ function useSaveEntry({
       });
     }
     const dayKey = toDayKey(start);
-    if (mode === 'save-and-add-another') {
-      router.replace(`/entry/new?day-key=${dayKey}`);
-      return;
+    if (!editingEntry) {
+      setDraft(buildInitialDraft(undefined, dayKey));
     }
     router.replace(`/day/${dayKey}?saved=1`);
-  }, [createEntry, draft.moodEmoji, draft.startValue, draft.text, editingEntry, router, setValidationMessage, updateEntry]);
+  }, [createEntry, draft.moodEmoji, draft.startValue, draft.text, editingEntry, router, setDraft, setValidationMessage, updateEntry]);
 }
 
 export function JournalEntryEditorScreen() {
@@ -387,12 +383,13 @@ export function JournalEntryEditorScreen() {
   const saveEntry = useSaveEntry({
     editingEntry,
     draft,
+    setDraft,
     setValidationMessage,
   });
   React.useEffect(() => {
     setDraft(draftSeed);
     setValidationMessage(null);
-  }, [draftSeed, editingEntry]);
+  }, [draftSeed]);
 
   return (
     <EntryForm
@@ -400,8 +397,7 @@ export function JournalEntryEditorScreen() {
       draft={draft}
       validationMessage={validationMessage}
       setDraft={setDraft}
-      onSave={() => saveEntry('save')}
-      onSaveAndAddAnother={() => saveEntry('save-and-add-another')}
+      onSave={saveEntry}
       onBack={() => router.back()}
     />
   );

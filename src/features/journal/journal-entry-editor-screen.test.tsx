@@ -11,10 +11,11 @@ const mockCreateEntry = jest.fn();
 const mockUpdateEntry = jest.fn();
 const mockEntries: JournalEntry[] = [];
 const mockJournalEntriesSelector = jest.fn(() => mockEntries);
+const mockSearchParams: { 'day-key'?: string; 'entry-id'?: string } = {};
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, back: mockBack }),
-  useLocalSearchParams: () => ({}),
+  useLocalSearchParams: () => mockSearchParams,
 }));
 
 jest.mock('react-native-modal-datetime-picker', () => 'DateTimePickerModal');
@@ -58,6 +59,8 @@ jest.mock('./use-journal-store', () => ({
 afterEach(() => {
   cleanup();
   jest.clearAllMocks();
+  mockSearchParams['day-key'] = undefined;
+  mockSearchParams['entry-id'] = undefined;
 });
 
 describe('journal entry editor', () => {
@@ -98,16 +101,16 @@ describe('journal entry editor', () => {
     expect(mockReplace).toHaveBeenCalledWith('/day/2026-04-29?saved=1');
   });
 
-  it('supports save-and-add-another fast path', async () => {
+  it('clears draft after save so a kept-mounted editor does not show previous text', async () => {
     const { user } = setup(<JournalEntryEditorScreen />);
 
-    await user.type(
-      screen.getByPlaceholderText(/What did you just finish\?|What is your next first step\?|How is your energy right now\?/),
-      'Quick check-in note.',
+    const noteInput = screen.getByPlaceholderText(
+      /What did you just finish\?|What is your next first step\?|How is your energy right now\?/,
     );
-    await user.press(screen.getByText('Save and Add Another'));
+    await user.type(noteInput, 'First check-in body.');
+    await user.press(screen.getByText('Save Check-in'));
 
-    expect(mockCreateEntry).toHaveBeenCalledTimes(1);
-    expect(mockReplace).toHaveBeenCalledWith('/entry/new?day-key=2026-04-29');
+    expect(mockReplace).toHaveBeenCalledWith('/day/2026-04-29?saved=1');
+    expect(noteInput).toHaveDisplayValue('');
   });
 });
