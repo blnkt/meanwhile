@@ -53,8 +53,8 @@ function entry(input: {
   };
 }
 
-describe('journalDayTimelineScreen duration labels', () => {
-  it('renders compact minute/hour labels for day blocks', () => {
+describe('journalDayTimelineScreen entry cards', () => {
+  it('shows entry body text but not duration labels', () => {
     mockEntriesSelector.mockReturnValue([
       entry({
         id: 'a',
@@ -75,8 +75,11 @@ describe('journalDayTimelineScreen duration labels', () => {
 
     setup(<JournalDayTimelineScreen />);
 
-    expect(screen.getByText('45m')).toBeOnTheScreen();
-    expect(screen.getByText('1h')).toBeOnTheScreen();
-    expect(screen.getByText('30m')).toBeOnTheScreen();
+    expect(screen.getByText('forty-five')).toBeOnTheScreen();
+    expect(screen.getByText('one hour')).toBeOnTheScreen();
+    expect(screen.getByText('half hour')).toBeOnTheScreen();
+    expect(screen.queryByText('45m')).toBeNull();
+    expect(screen.queryByText('1h')).toBeNull();
+    expect(screen.queryByText('30m')).toBeNull();
   });
 });

@@ -1,7 +1,6 @@
 import type { JournalEntry } from './types';
 
 import {
-  addMinutesCappedToEndOfDay,
   buildDayTimelineBlocks,
   buildSevenDayInsight,
   endOfDay,
@@ -42,7 +41,7 @@ describe('journal-utils', () => {
     ];
     expect(getNextEntryStart(nextStartEntries, '2026-04-29T10:30:00.000Z')).toBe('2026-04-29T11:00:00.000Z');
     expect(getNextEntryStart(nextStartEntries, '2026-04-29T14:00:00.000Z')).toBe(
-      addMinutesCappedToEndOfDay('2026-04-29T14:00:00.000Z', 30),
+      endOfDay('2026-04-29T14:00:00.000Z'),
     );
 
     const excludedEntries = [
@@ -59,7 +58,7 @@ describe('journal-utils', () => {
     const fallbackBlocks = buildDayTimelineBlocks(fallbackBlockEntries);
     expect(fallbackBlocks[0].startTime).toBe('2026-04-29T09:00:00.000Z');
     expect(fallbackBlocks[0].endTime).toBe('2026-04-29T10:00:00.000Z');
-    expect(fallbackBlocks[1].endTime).toBe(addMinutesCappedToEndOfDay('2026-04-29T10:00:00.000Z', 30));
+    expect(fallbackBlocks[1].endTime).toBe('2026-04-29T10:00:00.000Z');
   }
 
   it('covers critical grouping and timeline derivation behaviors', () => {

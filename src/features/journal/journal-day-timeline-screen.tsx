@@ -69,17 +69,6 @@ function LastSevenDaysCard({ insight }: { insight: ReturnType<typeof buildSevenD
 }
 
 function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
-  const startMs = new Date(block.startTime).getTime();
-  const endMs = new Date(block.endTime).getTime();
-  const durationMinutes = Math.max(1, Math.round((endMs - startMs) / 60000));
-  const durationHours = Math.floor(durationMinutes / 60);
-  const remainingMinutes = durationMinutes % 60;
-  const durationLabel = durationHours > 0
-    ? remainingMinutes > 0
-      ? `${durationHours}h ${remainingMinutes}m`
-      : `${durationHours}h`
-    : `${durationMinutes}m`;
-
   return (
     <View className="mb-3" onLayout={event => onMeasure(block.entryId, event)}>
       <Link href={`/entry/${block.entryId}`} asChild>
@@ -88,13 +77,6 @@ function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
             <Text className="font-semibold text-neutral-900 dark:text-neutral-50">
               {block.moodEmoji ? `${block.moodEmoji} ` : ''}
               {formatReadableTime(block.startTime)}
-              {' '}
-              -
-              {' '}
-              {formatReadableTime(block.endTime)}
-            </Text>
-            <Text className="mt-1 text-xs tracking-wide text-neutral-500 uppercase dark:text-neutral-400">
-              {durationLabel}
             </Text>
             <Text numberOfLines={4} className="mt-2 text-neutral-800 dark:text-neutral-100">
               {block.text || translate('journal.no_text')}
