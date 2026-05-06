@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
 
-import { Animated, Easing, useColorScheme } from 'react-native';
+import { Animated, Easing, StyleSheet, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, FocusAwareStatusBar, Pressable, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
 import {
@@ -228,7 +228,11 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
   }, [blocks, cardBoundsById, gradientHeight, parentGradientColors]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-black" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-white dark:bg-black"
+      edges={['top']}
+      style={styles.fill}
+    >
       <FocusAwareStatusBar />
       {showSavedToast
         ? (
@@ -243,8 +247,9 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
 
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-2"
+        contentContainerStyle={styles.scrollContent}
         stickyHeaderIndices={[1]}
+        style={styles.fill}
       >
         <DayScreenTitle title={dayTitle} />
         <DayHeaderActions />
@@ -287,3 +292,14 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: {
+    flex: 1,
+    minHeight: 0,
+  },
+  scrollContent: {
+    paddingBottom: 8,
+    flexGrow: 1,
+  },
+});

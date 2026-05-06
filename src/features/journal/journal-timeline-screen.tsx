@@ -1,5 +1,6 @@
 import { Link, useRouter } from 'expo-router';
 import * as React from 'react';
+import { StyleSheet } from 'react-native';
 import { Button, FocusAwareStatusBar, Pressable, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
 import { translate } from '@/lib/i18n';
 import { formatReadableDate, formatReadableTime, getTodayKey, groupEntriesByDay } from './journal-utils';
@@ -147,12 +148,17 @@ export function JournalTimelineScreen() {
   const emptyPrompt = translate(getStablePrompt(todayKey));
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-black" edges={['top']}>
+    <SafeAreaView
+      className="flex-1 bg-white dark:bg-black"
+      edges={['top']}
+      style={styles.fill}
+    >
       <FocusAwareStatusBar />
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-2"
+        contentContainerStyle={styles.scrollContent}
         stickyHeaderIndices={[1]}
+        style={styles.fill}
       >
         <View className="px-4 pt-4 pb-2">
           <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
@@ -201,3 +207,14 @@ export function JournalTimelineScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: {
+    flex: 1,
+    minHeight: 0,
+  },
+  scrollContent: {
+    paddingBottom: 8,
+    flexGrow: 1,
+  },
+});
