@@ -7,7 +7,6 @@
 - **Expo Router 6** - File-based routing (like Next.js)
 - **TailwindCSS** via Uniwind/Nativewind - Utility-first styling for React Native
 - **Zustand** - Lightweight global state management
-- **React Query** - Server state and data fetching
 - **TanStack Form + Zod** - Type-safe form handling and validation
 - **MMKV** - Encrypted local storage
 - **Jest + React Testing Library** - Unit testing
@@ -17,9 +16,9 @@
 ```
 src/
 ├── app/              # Expo Router file-based routes (add new routes here)
-├── features/         # Feature modules - auth, feed, settings are EXAMPLES
+├── features/         # Feature modules - journal, settings
 ├── components/ui/    # Pre-built UI components (button, input, modal, etc.)
-├── lib/              # Pre-configured utilities (api, auth, i18n, storage)
+├── lib/              # Pre-configured utilities (i18n, storage)
 ├── translations/     # i18n files (en.json, ar.json - add more languages)
 └── global.css        # TailwindCSS configuration
 
@@ -50,11 +49,10 @@ pnpm build:production:ios       # EAS production build
 
 ## How: Key Patterns
 
-- **Create features**: New folder in `src/features/[your-feature]/` with screens, components, API hooks
+- **Create features**: New folder in `src/features/[your-feature]/` with screens and components
 - **Add routes**: Create files in `src/app/` (file-based routing)
-- **Forms**: Use TanStack Form + Zod (see `src/features/auth/components/login-form.tsx`)
-- **Data fetching**: Use React Query (see `src/features/feed/api.ts`)
-- **Global state**: Use Zustand (see `src/features/auth/use-auth-store.tsx`)
+- **Forms**: Use TanStack Form + Zod (see `src/features/journal/journal-entry-editor-screen.tsx`)
+- **Global state**: Use Zustand (see `src/features/journal/use-journal-store.ts`)
 - **Styling**: NativeWind/Tailwind classes (see `src/components/ui/button.tsx`)
 - **Storage**: Use MMKV via `src/lib/storage.tsx` for sensitive data
 - **Imports**: Always use `@/` prefix, never relative imports
