@@ -103,7 +103,7 @@ describe('journalDayTimelineScreen entry cards', () => {
     expect(screen.queryByText('30m')).toBeNull();
   });
 
-  it('shows the no-text placeholder when the entry body is empty', () => {
+  it('omits entry body text when the entry body is empty', () => {
     mockEntriesSelector.mockReturnValue([
       entry({
         id: 'empty',
@@ -114,7 +114,7 @@ describe('journalDayTimelineScreen entry cards', () => {
 
     setup(<JournalDayTimelineScreen />);
 
-    expect(screen.getByText('(No text)')).toBeOnTheScreen();
+    expect(screen.queryByText('(No text)')).toBeNull();
   });
 
   it('shows the saved toast when the route includes saved=1', () => {

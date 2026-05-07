@@ -15,6 +15,7 @@ type DayEntryCardProps = {
 };
 
 function DayEntryCard({ block, setCardRef }: DayEntryCardProps) {
+  const hasText = block.text.trim().length > 0;
   return (
     <UIView className="mb-3" ref={node => setCardRef(block.entryId, node)}>
       <Link href={`/entry/${block.entryId}`} asChild>
@@ -24,9 +25,13 @@ function DayEntryCard({ block, setCardRef }: DayEntryCardProps) {
               {formatReadableTime(block.startTime)}
               {block.moodEmoji ? ` ${block.moodEmoji}` : ''}
             </Text>
-            <Text numberOfLines={4} className="mt-2 text-neutral-800 dark:text-neutral-100">
-              {block.text || translate('journal.no_text')}
-            </Text>
+            {hasText
+              ? (
+                  <Text numberOfLines={4} className="mt-2 text-neutral-800 dark:text-neutral-100">
+                    {block.text}
+                  </Text>
+                )
+              : null}
           </UIView>
         </Pressable>
       </Link>
