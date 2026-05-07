@@ -1,35 +1,41 @@
-import type { LayoutChangeEvent } from 'react-native';
-
-import type { CardBounds } from '@/features/journal/journal-day-gradient';
-import type { TimelineBlock } from '@/features/journal/types';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
 
-import { Animated, Easing, StyleSheet, useColorScheme } from 'react-native';
+import { Animated, Easing, StyleSheet, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, FocusAwareStatusBar, Pressable, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
+import {
+  Button,
+  FocusAwareStatusBar,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TranslucentSurface,
+  View as UIView,
+} from '@/components/ui';
 import {
   buildDurationWeightedGradientSpec,
   getParentGradientColors,
 } from '@/features/journal/journal-day-gradient';
 import {
+  DayHeaderActions,
+  DayScreenTitle,
+  JournalDayTimelineScrollBody,
+} from '@/features/journal/journal-day-timeline-scroll-body';
+import {
   buildDayTimelineBlocks,
   buildSevenDayInsight,
   formatReadableDate,
-  formatReadableTime,
+  getTodayKey,
   groupEntriesByDay,
 } from '@/features/journal/journal-utils';
+import { useDayTimelineGradientMeasurements } from '@/features/journal/use-day-timeline-gradient-measurements';
 import { useJournalStore } from '@/features/journal/use-journal-store';
 import { translate } from '@/lib/i18n';
 
 type JournalDayTimelineScreenProps = {
   dayKeyOverride?: string;
-};
-
-type DayEntryCardProps = {
-  block: TimelineBlock;
-  onMeasure: (entryId: string, event: LayoutChangeEvent) => void;
 };
 
 function SavedCheckInToast({
@@ -50,90 +56,6 @@ function SavedCheckInToast({
       <Text className="text-emerald-800 dark:text-emerald-200">{translate('journal.saved_checkin')}</Text>
     </Animated.View>
   );
-}
-
-function LastSevenDaysCard({ insight }: { insight: ReturnType<typeof buildSevenDayInsight> }) {
-  return (
-    <View className="mx-4 mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900">
-      <Text className="font-semibold">{translate('journal.insight.last_7_days')}</Text>
-      <Text className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
-        {translate('journal.insight.line1', {
-          count: insight.entryCount,
-          peak: translate(`journal.insight.window.${insight.busiestWindowKey}`),
-        })}
-      </Text>
-      <Text className="text-sm text-neutral-600 dark:text-neutral-300">
-        {translate('journal.insight.line2', {
-          moods: insight.topMoods.join(' ') || translate('journal.insight.no_moods'),
-          trend: translate(`journal.insight.trend.${insight.trendDirection}`, {
-            count: insight.trendDelta,
-          }),
-        })}
-      </Text>
-    </View>
-  );
-}
-
-function DayEntryCard({ block, onMeasure }: DayEntryCardProps) {
-  return (
-    <View className="mb-3" onLayout={event => onMeasure(block.entryId, event)}>
-      <Link href={`/entry/${block.entryId}`} asChild>
-        <Pressable className="overflow-hidden rounded-xl border border-neutral-200/90 dark:border-neutral-700/90">
-          <View className="bg-white/75 p-3 dark:bg-black/45">
-            <Text className="font-semibold text-neutral-900 dark:text-neutral-50">
-              {formatReadableTime(block.startTime)}
-              {block.moodEmoji ? ` ${block.moodEmoji}` : ''}
-            </Text>
-            <Text numberOfLines={4} className="mt-2 text-neutral-800 dark:text-neutral-100">
-              {block.text || translate('journal.no_text')}
-            </Text>
-          </View>
-        </Pressable>
-      </Link>
-    </View>
-  );
-}
-
-function useCardMeasurements(blocks: TimelineBlock[]) {
-  const [gradientHeight, setGradientHeight] = React.useState(0);
-  const [cardBoundsById, setCardBoundsById] = React.useState<Record<string, CardBounds>>({});
-
-  React.useEffect(() => {
-    const allowedIds = new Set(blocks.map(block => block.entryId));
-    setCardBoundsById((previous) => {
-      const nextEntries = Object.entries(previous).filter(([entryId]) => allowedIds.has(entryId));
-      if (nextEntries.length === Object.keys(previous).length) {
-        return previous;
-      }
-      return Object.fromEntries(nextEntries);
-    });
-  }, [blocks]);
-
-  const handleMeasureCard = React.useCallback((entryId: string, event: LayoutChangeEvent) => {
-    const { y, height } = event.nativeEvent.layout;
-    const nextBounds: CardBounds = { top: y, bottom: y + height };
-    setCardBoundsById((previous) => {
-      const current = previous[entryId];
-      if (
-        current
-        && Math.abs(current.top - nextBounds.top) < 0.5
-        && Math.abs(current.bottom - nextBounds.bottom) < 0.5
-      ) {
-        return previous;
-      }
-      return {
-        ...previous,
-        [entryId]: nextBounds,
-      };
-    });
-  }, []);
-
-  const handleMeasureGradient = React.useCallback((event: LayoutChangeEvent) => {
-    const nextHeight = event.nativeEvent.layout.height;
-    setGradientHeight(previous => (Math.abs(previous - nextHeight) < 0.5 ? previous : nextHeight));
-  }, []);
-
-  return { gradientHeight, cardBoundsById, handleMeasureCard, handleMeasureGradient };
 }
 
 function useSavedToast(savedFlag: string | undefined) {
@@ -174,29 +96,54 @@ function useSavedToast(savedFlag: string | undefined) {
   return { showSavedToast, savedToastOpacity, savedToastTranslateY };
 }
 
-function DayScreenTitle({ title }: { title: string }) {
-  return (
-    <View className="px-4 pt-4 pb-2">
-      <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">{title}</Text>
-    </View>
-  );
+function resolveDayTitle(dayKey: string, selectedDayKey: string | undefined, todayKey: string) {
+  if (dayKey === todayKey) {
+    return 'Today';
+  }
+  if (selectedDayKey) {
+    return formatReadableDate(selectedDayKey);
+  }
+  return translate('journal.day_timeline');
 }
 
-function DayHeaderActions() {
+function FooterCta({
+  dayKey,
+  tabBarHeight,
+  onMeasured,
+}: {
+  dayKey: string;
+  tabBarHeight: number;
+  onMeasured: (height: number) => void;
+}) {
+  const router = useRouter();
+
   return (
-    <View className="flex-row justify-end border-b border-neutral-200 bg-white px-4 py-2 dark:border-neutral-800 dark:bg-black">
-      <Link href="/all-entries" asChild>
-        <Button label={translate('journal.all_entries')} size="sm" variant="outline" fullWidth={false} />
-      </Link>
-    </View>
+    <TranslucentSurface
+      className="px-4 py-2"
+      onLayout={(event) => {
+        const nextHeight = event.nativeEvent.layout.height;
+        onMeasured(nextHeight);
+      }}
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: tabBarHeight,
+      }}
+    >
+      <Button
+        label={translate('journal.add_entry')}
+        onPress={() => router.push(`/entry/new?day-key=${dayKey}`)}
+      />
+    </TranslucentSurface>
   );
 }
 
 export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineScreenProps = {}) {
   const params = useLocalSearchParams<{ 'day-key': string; 'saved'?: string }>();
   const dayKey = dayKeyOverride ?? params['day-key'];
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const colorScheme = useColorScheme();
   const sliceScheme = colorScheme === 'dark' ? 'dark' : 'light';
   const parentGradientColors = React.useMemo(
@@ -204,6 +151,7 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
     [sliceScheme],
   );
   const entries = useJournalStore.use.entries();
+  const todayKey = getTodayKey();
   const insight = React.useMemo(() => buildSevenDayInsight(entries), [entries]);
   const dayGroups = React.useMemo(() => groupEntriesByDay(entries), [entries]);
   const selectedGroup = dayGroups.find(group => group.dayKey === dayKey);
@@ -211,84 +159,89 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
     () => buildDayTimelineBlocks(selectedGroup?.entries ?? []),
     [selectedGroup?.entries],
   );
-  const { gradientHeight, cardBoundsById, handleMeasureCard, handleMeasureGradient } = useCardMeasurements(blocks);
+  const gradientBackdropRef = React.useRef<View | null>(null);
+  const { gradientHeight, cardBoundsById, handleMeasureGradient, setCardRef, onScroll } = useDayTimelineGradientMeasurements(
+    blocks,
+    gradientBackdropRef,
+  );
   const { showSavedToast, savedToastOpacity, savedToastTranslateY } = useSavedToast(params.saved);
+  const [footerCtaHeight, setFooterCtaHeight] = React.useState(0);
 
-  const dayTitle = selectedGroup
-    ? formatReadableDate(selectedGroup.dayKey)
-    : translate('journal.day_timeline');
+  const dayTitle = resolveDayTitle(dayKey, selectedGroup?.dayKey, todayKey);
+
+  const cardBoundsForGradient = React.useMemo(() => {
+    const allowedIds = new Set(blocks.map(block => block.entryId));
+    return Object.fromEntries(
+      Object.entries(cardBoundsById).filter(([entryId]) => allowedIds.has(entryId)),
+    );
+  }, [blocks, cardBoundsById]);
 
   const gradientSpec = React.useMemo(() => {
     return buildDurationWeightedGradientSpec({
       blocks,
-      cardBoundsById,
+      cardBoundsById: cardBoundsForGradient,
       gradientHeight,
       parentGradientColors,
     });
-  }, [blocks, cardBoundsById, gradientHeight, parentGradientColors]);
+  }, [blocks, cardBoundsForGradient, gradientHeight, parentGradientColors]);
 
   return (
     <SafeAreaView
-      className="flex-1 bg-white dark:bg-black"
+      className="flex-1"
       edges={['top']}
       style={styles.fill}
     >
+      <View
+        ref={gradientBackdropRef}
+        pointerEvents="none"
+        style={StyleSheet.absoluteFill}
+        onLayout={handleMeasureGradient}
+      >
+        <LinearGradient
+          colors={gradientSpec?.colors ?? parentGradientColors}
+          end={{ x: 0, y: 1 }}
+          locations={gradientSpec?.locations}
+          start={{ x: 0, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
+
       <FocusAwareStatusBar />
       {showSavedToast
         ? (
-            <View
+            <UIView
               className="absolute inset-x-0 z-20 px-4"
               style={{ top: insets.top + 8 }}
             >
               <SavedCheckInToast opacity={savedToastOpacity} translateY={savedToastTranslateY} />
-            </View>
+            </UIView>
           )
         : null}
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: footerCtaHeight + tabBarHeight + 16 }]}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         stickyHeaderIndices={[1]}
         style={styles.fill}
       >
         <DayScreenTitle title={dayTitle} />
         <DayHeaderActions />
-
-        <View>
-          <LinearGradient
-            colors={gradientSpec?.colors ?? parentGradientColors}
-            end={{ x: 0, y: 1 }}
-            locations={gradientSpec?.locations}
-            onLayout={handleMeasureGradient}
-            start={{ x: 0, y: 0 }}
-            style={{ borderRadius: 12, marginHorizontal: 16, padding: 12 }}
-          >
-            {!selectedGroup
-              ? (
-                  <View className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
-                    <Text>{translate('journal.day_not_found')}</Text>
-                  </View>
-                )
-              : (
-                  blocks.map(block => (
-                    <DayEntryCard
-                      key={block.entryId}
-                      block={block}
-                      onMeasure={handleMeasureCard}
-                    />
-                  ))
-                )}
-          </LinearGradient>
-          <LastSevenDaysCard insight={insight} />
-        </View>
+        <JournalDayTimelineScrollBody
+          blocks={blocks}
+          insight={insight}
+          selectedGroup={selectedGroup}
+          setCardRef={setCardRef}
+        />
       </ScrollView>
 
-      <View className="px-4 pt-2 pb-4">
-        <Button
-          label={translate('journal.add_entry')}
-          onPress={() => router.push(`/entry/new?day-key=${dayKey}`)}
-        />
-      </View>
+      <FooterCta
+        dayKey={dayKey}
+        tabBarHeight={tabBarHeight}
+        onMeasured={height =>
+          setFooterCtaHeight(previous => (Math.abs(previous - height) < 0.5 ? previous : height))}
+      />
     </SafeAreaView>
   );
 }
@@ -299,7 +252,6 @@ const styles = StyleSheet.create({
     minHeight: 0,
   },
   scrollContent: {
-    paddingBottom: 8,
     flexGrow: 1,
   },
 });
