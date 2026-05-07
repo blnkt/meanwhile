@@ -3,7 +3,7 @@ import type { SevenDayInsight } from '@/features/journal/journal-utils';
 
 import type { JournalEntry, TimelineBlock } from '@/features/journal/types';
 import { Link } from 'expo-router';
-import { Button, Pressable, Text, TranslucentSurface, View as UIView } from '@/components/ui';
+import { Pressable, Text, TranslucentSurface, View as UIView } from '@/components/ui';
 import { formatReadableTime } from '@/features/journal/journal-utils';
 import { translate } from '@/lib/i18n';
 
@@ -64,16 +64,6 @@ function DayScreenTitle({ title }: { title: string }) {
   );
 }
 
-function DayHeaderActions() {
-  return (
-    <TranslucentSurface className="flex-row justify-end px-4 py-2">
-      <Link href="/all-entries" asChild>
-        <Button label={translate('journal.all_entries')} size="sm" variant="outline" fullWidth={false} />
-      </Link>
-    </TranslucentSurface>
-  );
-}
-
 type JournalDayTimelineScrollBodyProps = {
   selectedGroup: DayGroup | undefined;
   blocks: TimelineBlock[];
@@ -81,7 +71,7 @@ type JournalDayTimelineScrollBodyProps = {
   setCardRef: (entryId: string, node: View | null) => void;
 };
 
-export { DayHeaderActions, DayScreenTitle };
+export { DayScreenTitle };
 
 export function JournalDayTimelineScrollBody({
   selectedGroup,

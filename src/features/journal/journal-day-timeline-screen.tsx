@@ -19,7 +19,6 @@ import {
   getParentGradientColors,
 } from '@/features/journal/journal-day-gradient';
 import {
-  DayHeaderActions,
   DayScreenTitle,
   JournalDayTimelineScrollBody,
 } from '@/features/journal/journal-day-timeline-scroll-body';
@@ -223,11 +222,9 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
         contentContainerStyle={[styles.scrollContent, { paddingBottom: footerCtaHeight + tabBarHeight + 16 }]}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        stickyHeaderIndices={[1]}
         style={styles.fill}
       >
         <DayScreenTitle title={dayTitle} />
-        <DayHeaderActions />
         <JournalDayTimelineScrollBody
           blocks={blocks}
           insight={insight}

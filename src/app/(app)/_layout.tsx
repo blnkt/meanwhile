@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 
 import {
   Home as HomeIcon,
+  Moments as MomentsIcon,
   Settings as SettingsIcon,
 } from '@/components/ui/icons';
 import { TranslucentSurface } from '@/components/ui/translucent-surface';
@@ -42,6 +43,15 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="all-entries"
+        options={{
+          title: 'Moments',
+          tabBarIcon: ({ color }) => <MomentsIcon color={color} />,
+          tabBarButtonTestID: 'moments-tab',
+        }}
+      />
+
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
@@ -50,7 +60,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen name="day/[day-key]" options={{ href: null }} />
-      <Tabs.Screen name="all-entries" options={{ href: null }} />
       <Tabs.Screen name="entry/new" options={{ href: null }} />
       <Tabs.Screen name="entry/[entry-id]" options={{ href: null }} />
     </Tabs>

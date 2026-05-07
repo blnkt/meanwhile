@@ -156,7 +156,6 @@ export function JournalTimelineScreen() {
 
   const dayGroups = React.useMemo(() => groupEntriesByDay(entries), [entries]);
   const todayKey = getTodayKey();
-  const hasTodayEntries = dayGroups.some(group => group.dayKey === todayKey);
   const emptyPrompt = translate(getStablePrompt(todayKey));
 
   const scrollContentStyle = React.useMemo(
@@ -174,7 +173,6 @@ export function JournalTimelineScreen() {
       <ScrollView
         className="flex-1"
         contentContainerStyle={scrollContentStyle}
-        stickyHeaderIndices={[1]}
         style={styles.fill}
       >
         <View className="px-4 pt-4 pb-2">
@@ -182,22 +180,6 @@ export function JournalTimelineScreen() {
             {translate('journal.all_entries')}
           </Text>
         </View>
-
-        <TranslucentSurface className="flex-row justify-end px-4 py-2">
-          <Button
-            label={hasTodayEntries ? translate('journal.today_cta') : translate('journal.start_today')}
-            variant="outline"
-            size="sm"
-            fullWidth={false}
-            onPress={() => {
-              if (hasTodayEntries) {
-                router.push(`/day/${todayKey}`);
-                return;
-              }
-              router.push('/entry/new');
-            }}
-          />
-        </TranslucentSurface>
 
         <View className="mt-1 px-4">
           {dayGroups.length === 0
