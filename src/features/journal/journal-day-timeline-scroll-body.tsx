@@ -3,7 +3,7 @@ import type { SevenDayInsight } from '@/features/journal/journal-utils';
 
 import type { JournalEntry, TimelineBlock } from '@/features/journal/types';
 import { Link } from 'expo-router';
-import { Pressable, Text, TranslucentSurface, View as UIView } from '@/components/ui';
+import { Pressable, Text, View as UIView } from '@/components/ui';
 import { formatReadableTime } from '@/features/journal/journal-utils';
 import { translate } from '@/lib/i18n';
 

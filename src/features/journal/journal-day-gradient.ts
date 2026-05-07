@@ -4,9 +4,29 @@ export type CardBounds = { bottom: number; top: number };
 
 type GradientTuple = [number, number, ...number[]];
 export type ColorTuple = [string, string, ...string[]];
+export type GradientPresetKey = 'default' | 'calm' | 'forest' | 'mono';
 export type GradientSpec = {
   colors: ColorTuple;
   locations: GradientTuple;
+};
+
+const GRADIENT_PRESET_COLORS: Record<GradientPresetKey, { dark: ColorTuple; light: ColorTuple }> = {
+  default: {
+    dark: ['#0b1324', '#4a3320'],
+    light: ['#d8e8ff', '#ffd8bd'],
+  },
+  calm: {
+    dark: ['#11213a', '#2c3f66'],
+    light: ['#dceeff', '#c8defc'],
+  },
+  forest: {
+    dark: ['#0f251d', '#2f3b20'],
+    light: ['#d7f3df', '#e7f0cf'],
+  },
+  mono: {
+    dark: ['#151515', '#3a3a3a'],
+    light: ['#f5f5f5', '#e6e6e6'],
+  },
 };
 
 function hexToRgb(hex: string): { b: number; g: number; r: number } {
@@ -34,9 +54,14 @@ function blendHex(from: string, to: string, t: number): string {
 }
 
 export function getParentGradientColors(scheme: 'light' | 'dark'): ColorTuple {
-  return scheme === 'dark'
-    ? ['#0b1324', '#4a3320']
-    : ['#d8e8ff', '#ffd8bd'];
+  return getParentGradientColorsForPreset(scheme, 'default');
+}
+
+export function getParentGradientColorsForPreset(
+  scheme: 'light' | 'dark',
+  preset: GradientPresetKey,
+): ColorTuple {
+  return GRADIENT_PRESET_COLORS[preset][scheme];
 }
 
 export function buildDurationWeightedGradientSpec(input: {

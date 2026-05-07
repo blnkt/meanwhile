@@ -1,3 +1,4 @@
+import type { GradientPresetKey } from './journal-day-gradient';
 import type { JournalEntry } from './types';
 
 import { create } from 'zustand';
@@ -17,6 +18,7 @@ const JOURNAL_CLOUD_STORAGE_KEY = 'journal-store-v1-cloud';
 type JournalStoreState = {
   entries: JournalEntry[];
   collapsedDayKeys: string[];
+  gradientPreset: GradientPresetKey;
   isHydrated: boolean;
   createEntry: (input: {
     moodEmoji?: string | null;
@@ -25,10 +27,11 @@ type JournalStoreState = {
   }) => string;
   updateEntry: (id: string, input: Partial<Pick<JournalEntry, 'moodEmoji' | 'text' | 'startTime'>>) => void;
   toggleDayCollapsed: (dayKey: string) => void;
+  setGradientPreset: (preset: GradientPresetKey) => void;
   hydrate: () => void;
 };
 
-type PersistedJournalState = Pick<JournalStoreState, 'entries' | 'collapsedDayKeys'>;
+type PersistedJournalState = Pick<JournalStoreState, 'entries' | 'collapsedDayKeys' | 'gradientPreset'>;
 
 function latestUpdatedAtMs(entries: JournalEntry[]) {
   return entries.reduce((latest, entry) => {
@@ -65,6 +68,7 @@ function makeId() {
 const _useJournalStore = create<JournalStoreState>((set, get) => ({
   entries: [],
   collapsedDayKeys: [],
+  gradientPreset: 'default',
   isHydrated: false,
   createEntry: (input) => {
     const now = new Date().toISOString();
@@ -80,7 +84,11 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
 
     const entries = sortEntriesByStartDesc([...get().entries, entry]);
     set({ entries });
-    persistState({ entries, collapsedDayKeys: get().collapsedDayKeys });
+    persistState({
+      entries,
+      collapsedDayKeys: get().collapsedDayKeys,
+      gradientPreset: get().gradientPreset,
+    });
     return entry.id;
   },
   updateEntry: (id, input) => {
@@ -98,7 +106,11 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
     );
 
     set({ entries });
-    persistState({ entries, collapsedDayKeys: get().collapsedDayKeys });
+    persistState({
+      entries,
+      collapsedDayKeys: get().collapsedDayKeys,
+      gradientPreset: get().gradientPreset,
+    });
   },
   toggleDayCollapsed: (dayKey) => {
     const exists = get().collapsedDayKeys.includes(dayKey);
@@ -106,7 +118,15 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
       ? get().collapsedDayKeys.filter(key => key !== dayKey)
       : [...get().collapsedDayKeys, dayKey];
     set({ collapsedDayKeys });
-    persistState({ entries: get().entries, collapsedDayKeys });
+    persistState({ entries: get().entries, collapsedDayKeys, gradientPreset: get().gradientPreset });
+  },
+  setGradientPreset: (gradientPreset) => {
+    set({ gradientPreset });
+    persistState({
+      entries: get().entries,
+      collapsedDayKeys: get().collapsedDayKeys,
+      gradientPreset,
+    });
   },
   hydrate: () => {
     const stored = getItem<PersistedJournalState>(
@@ -115,6 +135,7 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
     const localState: PersistedJournalState = {
       entries: stored?.entries ?? [],
       collapsedDayKeys: stored?.collapsedDayKeys ?? [],
+      gradientPreset: stored?.gradientPreset ?? 'default',
     };
     void pullFromCloudIfNewer(localState)
       .then((selectedState) => {
@@ -123,9 +144,14 @@ const _useJournalStore = create<JournalStoreState>((set, get) => ({
         set({
           entries,
           collapsedDayKeys,
+          gradientPreset: selectedState.gradientPreset ?? 'default',
           isHydrated: true,
         });
-        persistState({ entries, collapsedDayKeys });
+        persistState({
+          entries,
+          collapsedDayKeys,
+          gradientPreset: selectedState.gradientPreset ?? 'default',
+        });
       })
       .catch(() => {
         set({ isHydrated: true });
@@ -139,7 +165,11 @@ export const hydrateJournal = () => _useJournalStore.getState().hydrate();
 
 export function syncJournalToICloud() {
   const state = _useJournalStore.getState();
-  persistState({ entries: state.entries, collapsedDayKeys: state.collapsedDayKeys });
+  persistState({
+    entries: state.entries,
+    collapsedDayKeys: state.collapsedDayKeys,
+    gradientPreset: state.gradientPreset,
+  });
 }
 
 export async function clearJournalFromICloud() {

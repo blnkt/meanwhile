@@ -74,6 +74,15 @@
     "english": "Ingles",
     "generale": "General",
     "github": "Github",
+    "gradient": {
+      "options": {
+        "calm": "Azul suave",
+        "default": "Atardecer",
+        "forest": "Bosque",
+        "mono": "Monocromo"
+      },
+      "title": "Gradiente de la linea de tiempo"
+    },
     "icloud_sync": "Sincronizacion con iCloud",
     "icloud_sync_description": "Sincroniza los datos del diario entre tus dispositivos Apple con iCloud.",
     "icloud_sync_unavailable": "La sincronizacion con iCloud solo esta disponible en iOS.",

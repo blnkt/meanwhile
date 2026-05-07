@@ -74,6 +74,15 @@
     "english": "English",
     "generale": "General",
     "github": "Github",
+    "gradient": {
+      "options": {
+        "calm": "Calm Blue",
+        "default": "Sunset",
+        "forest": "Forest",
+        "mono": "Monochrome"
+      },
+      "title": "Timeline Gradient"
+    },
     "icloud_sync": "iCloud Sync",
     "icloud_sync_description": "Sync journal data across your Apple devices using iCloud.",
     "icloud_sync_unavailable": "iCloud sync is only available on iOS devices.",

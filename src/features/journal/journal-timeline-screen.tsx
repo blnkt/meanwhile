@@ -1,7 +1,7 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Link, useRouter } from 'expo-router';
 import * as React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 import {
   Button,
   FocusAwareStatusBar,
@@ -12,6 +12,7 @@ import {
   TranslucentSurface,
   View,
 } from '@/components/ui';
+import { getParentGradientColorsForPreset } from '@/features/journal/journal-day-gradient';
 import { translate } from '@/lib/i18n';
 import { formatReadableDate, formatReadableTime, getTodayKey, groupEntriesByDay } from './journal-utils';
 import { useJournalStore } from './use-journal-store';
@@ -94,54 +95,60 @@ function DayGroupCard({
   return (
     <View
       key={group.dayKey}
-      className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800"
+      className="mb-3 overflow-hidden rounded-xl border border-neutral-200/90 dark:border-neutral-700/90"
     >
-      <View className="mb-2 flex-row flex-wrap items-start justify-between gap-y-2">
-        <View className="min-w-0 flex-1 pr-2">
-          <Pressable onPress={onToggleCollapsed}>
-            <View className="flex-row items-start">
-              <Text className="w-5 font-semibold">{isCollapsed ? '▶' : '▼'}</Text>
-              <View className="min-w-0 flex-1">
-                <Text numberOfLines={1} className="font-semibold">
-                  {dayName}
-                </Text>
-                <Text numberOfLines={1} className="text-sm text-neutral-600 dark:text-neutral-300">
-                  {rest}
-                </Text>
+      <View className="bg-white/75 p-3 dark:bg-black/45">
+        <View className="mb-2 flex-row flex-wrap items-start justify-between gap-y-2">
+          <View className="min-w-0 flex-1 pr-2">
+            <Pressable onPress={onToggleCollapsed}>
+              <View className="flex-row items-start">
+                <Text className="w-5 font-semibold">{isCollapsed ? '▶' : '▼'}</Text>
+                <View className="min-w-0 flex-1">
+                  <Text numberOfLines={1} className="font-semibold">
+                    {dayName}
+                  </Text>
+                  <Text numberOfLines={1} className="text-sm text-neutral-600 dark:text-neutral-300">
+                    {rest}
+                  </Text>
+                </View>
               </View>
-            </View>
-          </Pressable>
+            </Pressable>
+          </View>
+          <Button
+            className="self-start"
+            label={translate('journal.timeline.day_view')}
+            size="sm"
+            variant="outline"
+            fullWidth={false}
+            onPress={onOpenDay}
+          />
         </View>
-        <Button
-          className="self-start"
-          label={translate('journal.timeline.day_view')}
-          size="sm"
-          variant="outline"
-          fullWidth={false}
-          onPress={onOpenDay}
-        />
+        {!isCollapsed
+          ? (
+              group.entries.map(entry => (
+                <View key={entry.id} className="mb-2 overflow-hidden rounded-xl border border-neutral-200/90 dark:border-neutral-700/90">
+                  <Link href={`/entry/${entry.id}`} asChild>
+                    <Pressable>
+                      <View className="bg-white/75 p-3 dark:bg-black/45">
+                        <Text className="font-medium">
+                          {formatReadableTime(entry.startTime)}
+                          {entry.moodEmoji ? ` ${entry.moodEmoji}` : ''}
+                        </Text>
+                        <Text numberOfLines={2} className="mt-1 text-neutral-700 dark:text-neutral-300">
+                          {entry.text || translate('journal.no_text')}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  </Link>
+                </View>
+              ))
+            )
+          : (
+              <Text className="text-sm text-neutral-600 dark:text-neutral-300">
+                {collapsedSummary}
+              </Text>
+            )}
       </View>
-      {!isCollapsed
-        ? (
-            group.entries.map(entry => (
-              <Link key={entry.id} href={`/entry/${entry.id}`} asChild>
-                <Pressable className="mb-2 rounded-lg bg-neutral-100 p-3 dark:bg-neutral-900">
-                  <Text className="font-medium">
-                    {formatReadableTime(entry.startTime)}
-                    {entry.moodEmoji ? ` ${entry.moodEmoji}` : ''}
-                  </Text>
-                  <Text numberOfLines={2} className="mt-1 text-neutral-700 dark:text-neutral-300">
-                    {entry.text || translate('journal.no_text')}
-                  </Text>
-                </Pressable>
-              </Link>
-            ))
-          )
-        : (
-            <Text className="text-sm text-neutral-600 dark:text-neutral-300">
-              {collapsedSummary}
-            </Text>
-          )}
     </View>
   );
 }
@@ -149,6 +156,13 @@ function DayGroupCard({
 export function JournalTimelineScreen() {
   const router = useRouter();
   const tabBarHeight = useBottomTabBarHeight();
+  const colorScheme = useColorScheme();
+  const sliceScheme = colorScheme === 'dark' ? 'dark' : 'light';
+  const gradientPreset = useJournalStore.use.gradientPreset();
+  const parentGradientColors = React.useMemo(
+    () => getParentGradientColorsForPreset(sliceScheme, gradientPreset),
+    [gradientPreset, sliceScheme],
+  );
   const [footerCtaHeight, setFooterCtaHeight] = React.useState(0);
   const entries = useJournalStore.use.entries();
   const collapsedDayKeys = useJournalStore.use.collapsedDayKeys();
@@ -165,9 +179,9 @@ export function JournalTimelineScreen() {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-white dark:bg-black"
+      className="flex-1"
       edges={['top']}
-      style={styles.fill}
+      style={[styles.fill, { backgroundColor: parentGradientColors[0] }]}
     >
       <FocusAwareStatusBar />
       <ScrollView

@@ -5,6 +5,7 @@ import { screen, setup } from '@/lib/test-utils';
 import { JournalDayTimelineScreen } from './journal-day-timeline-screen';
 
 const mockEntriesSelector = jest.fn<JournalEntry[], []>(() => []);
+const mockGradientPresetSelector = jest.fn(() => 'default');
 
 /* eslint-disable react/no-unnecessary-use-prefix -- mock must expose expo-router hook names */
 jest.mock('expo-router', () => {
@@ -48,6 +49,7 @@ jest.mock('./use-journal-store', () => ({
   useJournalStore: {
     use: {
       entries: () => mockEntriesSelector(),
+      gradientPreset: () => mockGradientPresetSelector(),
     },
   },
 }));

@@ -74,6 +74,15 @@
     "english": "إنجليزي",
     "generale": "عام",
     "github": "جيثب",
+    "gradient": {
+      "options": {
+        "calm": "ازرق هادئ",
+        "default": "غروب",
+        "forest": "غابة",
+        "mono": "احادي اللون"
+      },
+      "title": "تدرج الخط الزمني"
+    },
     "icloud_sync": "مزامنة iCloud",
     "icloud_sync_description": "زامن بيانات اليوميات عبر أجهزة Apple باستخدام iCloud.",
     "icloud_sync_unavailable": "مزامنة iCloud متاحة فقط على أجهزة iOS.",

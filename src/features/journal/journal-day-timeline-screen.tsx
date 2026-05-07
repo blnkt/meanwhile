@@ -16,7 +16,7 @@ import {
 } from '@/components/ui';
 import {
   buildDurationWeightedGradientSpec,
-  getParentGradientColors,
+  getParentGradientColorsForPreset,
 } from '@/features/journal/journal-day-gradient';
 import {
   DayScreenTitle,
@@ -145,9 +145,10 @@ export function JournalDayTimelineScreen({ dayKeyOverride }: JournalDayTimelineS
   const tabBarHeight = useBottomTabBarHeight();
   const colorScheme = useColorScheme();
   const sliceScheme = colorScheme === 'dark' ? 'dark' : 'light';
+  const gradientPreset = useJournalStore.use.gradientPreset();
   const parentGradientColors = React.useMemo(
-    () => getParentGradientColors(sliceScheme),
-    [sliceScheme],
+    () => getParentGradientColorsForPreset(sliceScheme, gradientPreset),
+    [gradientPreset, sliceScheme],
   );
   const entries = useJournalStore.use.entries();
   const todayKey = getTodayKey();
