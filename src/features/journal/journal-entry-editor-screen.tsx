@@ -1,5 +1,6 @@
 import type { JournalEntry } from './types';
 import type { TxKeyPath } from '@/lib/i18n';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as React from 'react';
 import { Platform, TextInput } from 'react-native';
@@ -251,6 +252,7 @@ function EntryForm({
   onSave,
   onBack,
 }: EntryFormProps) {
+  const tabBarHeight = useBottomTabBarHeight();
   const [activePicker, setActivePicker] = React.useState<'start' | null>(null);
   const [isTimeSectionExpanded, setIsTimeSectionExpanded] = React.useState(false);
   const prompt = React.useMemo(
@@ -261,7 +263,7 @@ function EntryForm({
   return (
     <View className="flex-1 bg-white dark:bg-black">
       <FocusAwareStatusBar />
-      <ScrollView className="flex-1 px-4 pt-14">
+      <ScrollView className="flex-1 px-4 pt-14" contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}>
         <View className="mb-3 flex-row items-center justify-between">
           <Text className="text-[28px] font-bold">
             {editingEntry ? translate('journal.save_changes') : translate('journal.new_entry')}

@@ -1,7 +1,17 @@
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Link, useRouter } from 'expo-router';
 import * as React from 'react';
 import { StyleSheet } from 'react-native';
-import { Button, FocusAwareStatusBar, Pressable, SafeAreaView, ScrollView, Text, View } from '@/components/ui';
+import {
+  Button,
+  FocusAwareStatusBar,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TranslucentSurface,
+  View,
+} from '@/components/ui';
 import { translate } from '@/lib/i18n';
 import { formatReadableDate, formatReadableTime, getTodayKey, groupEntriesByDay } from './journal-utils';
 import { useJournalStore } from './use-journal-store';
@@ -138,6 +148,8 @@ function DayGroupCard({
 
 export function JournalTimelineScreen() {
   const router = useRouter();
+  const tabBarHeight = useBottomTabBarHeight();
+  const [footerCtaHeight, setFooterCtaHeight] = React.useState(0);
   const entries = useJournalStore.use.entries();
   const collapsedDayKeys = useJournalStore.use.collapsedDayKeys();
   const toggleDayCollapsed = useJournalStore.use.toggleDayCollapsed();
@@ -146,6 +158,11 @@ export function JournalTimelineScreen() {
   const todayKey = getTodayKey();
   const hasTodayEntries = dayGroups.some(group => group.dayKey === todayKey);
   const emptyPrompt = translate(getStablePrompt(todayKey));
+
+  const scrollContentStyle = React.useMemo(
+    () => [styles.scrollContent, { paddingBottom: footerCtaHeight + tabBarHeight + 16 }],
+    [footerCtaHeight, tabBarHeight],
+  );
 
   return (
     <SafeAreaView
@@ -156,7 +173,7 @@ export function JournalTimelineScreen() {
       <FocusAwareStatusBar />
       <ScrollView
         className="flex-1"
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={scrollContentStyle}
         stickyHeaderIndices={[1]}
         style={styles.fill}
       >
@@ -166,7 +183,7 @@ export function JournalTimelineScreen() {
           </Text>
         </View>
 
-        <View className="flex-row justify-end border-b border-neutral-200 bg-white px-4 py-2 dark:border-neutral-800 dark:bg-black">
+        <TranslucentSurface className="flex-row justify-end px-4 py-2">
           <Button
             label={hasTodayEntries ? translate('journal.today_cta') : translate('journal.start_today')}
             variant="outline"
@@ -180,7 +197,7 @@ export function JournalTimelineScreen() {
               router.push('/entry/new');
             }}
           />
-        </View>
+        </TranslucentSurface>
 
         <View className="mt-1 px-4">
           {dayGroups.length === 0
@@ -201,9 +218,21 @@ export function JournalTimelineScreen() {
               )}
         </View>
       </ScrollView>
-      <View className="px-4 pt-2 pb-4">
+      <TranslucentSurface
+        className="px-4 py-2"
+        onLayout={(event) => {
+          const nextHeight = event.nativeEvent.layout.height;
+          setFooterCtaHeight(previous => (Math.abs(previous - nextHeight) < 0.5 ? previous : nextHeight));
+        }}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: tabBarHeight,
+        }}
+      >
         <Button label={translate('journal.add_entry')} onPress={() => router.push('/entry/new')} />
-      </View>
+      </TranslucentSurface>
     </SafeAreaView>
   );
 }
@@ -214,7 +243,6 @@ const styles = StyleSheet.create({
     minHeight: 0,
   },
   scrollContent: {
-    paddingBottom: 8,
     flexGrow: 1,
   },
 });

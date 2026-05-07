@@ -1,10 +1,16 @@
 import { Tabs } from 'expo-router';
 import * as React from 'react';
+import { StyleSheet } from 'react-native';
 
 import {
   Home as HomeIcon,
   Settings as SettingsIcon,
 } from '@/components/ui/icons';
+import { TranslucentSurface } from '@/components/ui/translucent-surface';
+
+function TabBarBackground() {
+  return <TranslucentSurface style={StyleSheet.absoluteFill} />;
+}
 
 export default function TabLayout() {
   return (
@@ -15,10 +21,15 @@ export default function TabLayout() {
           justifyContent: 'center',
         },
         tabBarStyle: {
+          position: 'absolute',
+          borderTopWidth: 0,
+          backgroundColor: 'transparent',
           height: 58,
           paddingBottom: 8,
           paddingTop: 6,
+          elevation: 0,
         },
+        tabBarBackground: TabBarBackground,
       }}
     >
       <Tabs.Screen

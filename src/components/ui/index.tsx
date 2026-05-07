@@ -13,6 +13,7 @@ export * from './modal';
 export * from './progress-bar';
 export * from './select';
 export * from './text';
+export * from './translucent-surface';
 export * from './utils';
 
 // export base components from react-native

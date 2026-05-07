@@ -28,6 +28,8 @@ jest.mock('@/components/ui', () => {
       ReactModule.createElement(RN.View, null, children),
     ScrollView: RN.ScrollView,
     Text: RN.Text,
+    TranslucentSurface: ({ children, ...props }: { children?: React.ReactNode }) =>
+      ReactModule.createElement(RN.View, props, children),
     View: RN.View,
   };
 });

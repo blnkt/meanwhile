@@ -1,5 +1,5 @@
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import Env from 'env';
-
 import {
   FocusAwareStatusBar,
   ScrollView,
@@ -14,11 +14,13 @@ import { SettingsItem } from './components/settings-item';
 import { ThemeItem } from './components/theme-item';
 
 export function SettingsScreen() {
+  const tabBarHeight = useBottomTabBarHeight();
+
   return (
     <>
       <FocusAwareStatusBar />
 
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}>
         <View className="flex-1 px-4 pt-16">
           <Text className="text-xl font-bold">
             {translate('settings.title')}

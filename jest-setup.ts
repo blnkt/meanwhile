@@ -1,6 +1,23 @@
 /* eslint-disable ts/ban-ts-comment */
 /* eslint-disable no-restricted-globals */
 
+jest.mock('expo-blur', () => {
+  const RN = require('react-native');
+  return {
+    BlurView: (props: Record<string, unknown>) => RN.createElement(RN.View, props),
+  };
+});
+
+jest.mock('@react-navigation/bottom-tabs', () => {
+  const actual = jest.requireActual('@react-navigation/bottom-tabs');
+  return {
+    ...actual,
+    // API name from React Navigation (not a React hook in this mock)
+    // eslint-disable-next-line react/no-unnecessary-use-prefix -- matches library export name
+    useBottomTabBarHeight: () => 0,
+  };
+});
+
 // Mock react-native-worklets first
 jest.mock('react-native-worklets', () => ({
   __esModule: true,
