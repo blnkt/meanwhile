@@ -93,63 +93,63 @@ function DayGroupCard({
   const collapsedSummary = buildCollapsedSummary(group.entries);
   const { dayName, rest } = splitReadableDate(group.dayKey);
   return (
-    <View
+    <TranslucentSurface
       key={group.dayKey}
-      className="mb-3 overflow-hidden rounded-xl border border-neutral-200/90 dark:border-neutral-700/90"
+      overlayOpacity={0.4}
+      className="mb-3 overflow-hidden rounded-xl border border-neutral-200/90 p-3 dark:border-neutral-700/90"
+      intensity={52}
     >
-      <View className="bg-white/75 p-3 dark:bg-black/45">
-        <View className="mb-2 flex-row flex-wrap items-start justify-between gap-y-2">
-          <View className="min-w-0 flex-1 pr-2">
-            <Pressable onPress={onToggleCollapsed}>
-              <View className="flex-row items-start">
-                <Text className="w-5 font-semibold">{isCollapsed ? '▶' : '▼'}</Text>
-                <View className="min-w-0 flex-1">
-                  <Text numberOfLines={1} className="font-semibold">
-                    {dayName}
-                  </Text>
-                  <Text numberOfLines={1} className="text-sm text-neutral-600 dark:text-neutral-300">
-                    {rest}
-                  </Text>
-                </View>
+      <View className="mb-2 flex-row flex-wrap items-start justify-between gap-y-2">
+        <View className="min-w-0 flex-1 pr-2">
+          <Pressable onPress={onToggleCollapsed}>
+            <View className="flex-row items-start">
+              <Text className="w-5 font-semibold">{isCollapsed ? '▶' : '▼'}</Text>
+              <View className="min-w-0 flex-1">
+                <Text numberOfLines={1} className="font-semibold">
+                  {dayName}
+                </Text>
+                <Text numberOfLines={1} className="text-sm text-neutral-600 dark:text-neutral-300">
+                  {rest}
+                </Text>
               </View>
-            </Pressable>
-          </View>
-          <Button
-            className="self-start"
-            label={translate('journal.timeline.day_view')}
-            size="sm"
-            variant="outline"
-            fullWidth={false}
-            onPress={onOpenDay}
-          />
+            </View>
+          </Pressable>
         </View>
-        {!isCollapsed
-          ? (
-              group.entries.map(entry => (
-                <View key={entry.id} className="mb-2 overflow-hidden rounded-xl border border-neutral-200/90 dark:border-neutral-700/90">
-                  <Link href={`/entry/${entry.id}`} asChild>
-                    <Pressable>
-                      <View className="bg-white/75 p-3 dark:bg-black/45">
-                        <Text className="font-medium">
-                          {formatReadableTime(entry.startTime)}
-                          {entry.moodEmoji ? ` ${entry.moodEmoji}` : ''}
-                        </Text>
-                        <Text numberOfLines={2} className="mt-1 text-neutral-700 dark:text-neutral-300">
-                          {entry.text || translate('journal.no_text')}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  </Link>
-                </View>
-              ))
-            )
-          : (
-              <Text className="text-sm text-neutral-600 dark:text-neutral-300">
-                {collapsedSummary}
-              </Text>
-            )}
+        <Button
+          className="self-start"
+          label={translate('journal.timeline.day_view')}
+          size="sm"
+          variant="outline"
+          fullWidth={false}
+          onPress={onOpenDay}
+        />
       </View>
-    </View>
+      {!isCollapsed
+        ? (
+            group.entries.map(entry => (
+              <View key={entry.id} className="mb-2 overflow-hidden rounded-xl border border-neutral-200/90 dark:border-neutral-700/90">
+                <Link href={`/entry/${entry.id}`} asChild>
+                  <Pressable>
+                    <View className="bg-white/75 p-3 dark:bg-black/45">
+                      <Text className="font-medium">
+                        {formatReadableTime(entry.startTime)}
+                        {entry.moodEmoji ? ` ${entry.moodEmoji}` : ''}
+                      </Text>
+                      <Text numberOfLines={2} className="mt-1 text-neutral-700 dark:text-neutral-300">
+                        {entry.text || translate('journal.no_text')}
+                      </Text>
+                    </View>
+                  </Pressable>
+                </Link>
+              </View>
+            ))
+          )
+        : (
+            <Text className="text-sm text-neutral-600 dark:text-neutral-300">
+              {collapsedSummary}
+            </Text>
+          )}
+    </TranslucentSurface>
   );
 }
 
