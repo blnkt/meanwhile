@@ -58,9 +58,9 @@ function LastSevenDaysCard({ insight }: { insight: SevenDayInsight }) {
 
 function DayScreenTitle({ title }: { title: string }) {
   return (
-    <TranslucentSurface className="px-4 pt-4 pb-2">
-      <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">{title}</Text>
-    </TranslucentSurface>
+    <UIView className="px-4 pt-5 pb-3">
+      <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">{title}</Text>
+    </UIView>
   );
 }
 
