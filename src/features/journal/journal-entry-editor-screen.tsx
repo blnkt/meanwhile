@@ -73,19 +73,34 @@ function MoodPicker({
     <View className="mt-2 mb-3">
       <Text className="mb-1 font-semibold">{translate('journal.mood')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View className="flex-row gap-2 pr-2">
-          {MOOD_OPTIONS.map(option => (
-            <Button
-              key={option}
-              label={option}
-              size="lg"
-              fullWidth={false}
-              className="min-h-[52px] min-w-[52px] shrink-0 px-3"
-              textClassName="text-3xl leading-none"
-              variant={selectedMood === option ? 'default' : 'outline'}
-              onPress={() => onSelect(selectedMood === option ? null : option)}
-            />
-          ))}
+        <View className="flex-row items-center gap-2 pr-2">
+          {MOOD_OPTIONS.map((option) => {
+            const selected = selectedMood === option;
+            return (
+              <Pressable
+                key={option}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                className={`min-h-[56px] min-w-[56px] shrink-0 items-center justify-center rounded-md px-3 ${
+                  selected ? 'bg-black dark:bg-white' : 'border border-neutral-400'
+                }`}
+                onPress={() => onSelect(selected ? null : option)}
+              >
+                <Text
+                  className={`text-center text-3xl font-normal ${
+                    selected ? 'text-white dark:text-black' : 'text-black dark:text-neutral-100'
+                  }`}
+                  style={
+                    Platform.OS === 'android'
+                      ? { lineHeight: 36, textAlignVertical: 'center' }
+                      : { lineHeight: 36 }
+                  }
+                >
+                  {option}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
     </View>
